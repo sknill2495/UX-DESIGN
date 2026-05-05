@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Isabella & James — Wedding Invitation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Floating petals canvas -->
+  <canvas id="petals-canvas"></canvas>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <span class="nav-monogram">I & J</span>
+      <ul class="nav-links">
+        <li><a href="#story">Our Story</a></li>
+        <li><a href="#details">Details</a></li>
+        <li><a href="#schedule">Schedule</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#rsvp" class="nav-rsvp">RSVP</a></li>
+      </ul>
+      <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <ul class="nav-mobile" id="nav-mobile">
+      <li><a href="#story">Our Story</a></li>
+      <li><a href="#details">Details</a></li>
+      <li><a href="#schedule">Schedule</a></li>
+      <li><a href="#gallery">Gallery</a></li>
+      <li><a href="#rsvp">RSVP</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p class="hero-pre reveal">Together with their families</p>
+      <h1 class="hero-names reveal">
+        <span class="name-first">Isabella</span>
+        <span class="hero-ampersand">&amp;</span>
+        <span class="name-last">James</span>
+      </h1>
+      <div class="hero-divider reveal">
+        <span class="divider-line"></span>
+        <svg class="divider-flower" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="3" fill="currentColor"/>
+          <ellipse cx="20" cy="10" rx="3" ry="6" fill="currentColor" opacity=".7"/>
+          <ellipse cx="20" cy="30" rx="3" ry="6" fill="currentColor" opacity=".7"/>
+          <ellipse cx="10" cy="20" rx="6" ry="3" fill="currentColor" opacity=".7"/>
+          <ellipse cx="30" cy="20" rx="6" ry="3" fill="currentColor" opacity=".7"/>
+          <ellipse cx="13" cy="13" rx="3" ry="6" fill="currentColor" opacity=".5" transform="rotate(45 13 13)"/>
+          <ellipse cx="27" cy="13" rx="3" ry="6" fill="currentColor" opacity=".5" transform="rotate(-45 27 13)"/>
+          <ellipse cx="13" cy="27" rx="3" ry="6" fill="currentColor" opacity=".5" transform="rotate(-45 13 27)"/>
+          <ellipse cx="27" cy="27" rx="3" ry="6" fill="currentColor" opacity=".5" transform="rotate(45 27 27)"/>
+        </svg>
+        <span class="divider-line"></span>
+      </div>
+      <p class="hero-date reveal">Saturday, the Fourteenth of June</p>
+      <p class="hero-year reveal">Two Thousand and Twenty-Six</p>
+      <p class="hero-venue reveal">The Grand Belmont Estate · Tuscany, Italy</p>
+      <a href="#rsvp" class="hero-cta reveal">Kindly Reply</a>
+    </div>
+    <div class="hero-scroll" id="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <!-- Countdown -->
+  <section class="countdown-section">
+    <div class="countdown-inner">
+      <p class="countdown-label">Days Until We Say "I Do"</p>
+      <div class="countdown" id="countdown">
+        <div class="countdown-unit">
+          <span class="countdown-val" id="days">000</span>
+          <span class="countdown-name">Days</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-unit">
+          <span class="countdown-val" id="hours">00</span>
+          <span class="countdown-name">Hours</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-unit">
+          <span class="countdown-val" id="minutes">00</span>
+          <span class="countdown-name">Minutes</span>
+        </div>
+        <span class="countdown-sep">:</span>
+        <div class="countdown-unit">
+          <span class="countdown-val" id="seconds">00</span>
+          <span class="countdown-name">Seconds</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Our Story -->
+  <section class="story" id="story">
+    <div class="section-tag reveal">Our Story</div>
+    <div class="story-timeline">
+
+      <div class="story-item reveal">
+        <div class="story-image-wrap">
+          <div class="story-image story-img-1"></div>
+        </div>
+        <div class="story-card">
+          <span class="story-year">2019</span>
+          <h3>The First Meeting</h3>
+          <p>A chance encounter at a small art gallery in Florence. James stopped to admire a painting — Isabella happened to be standing right beside it. They talked for three hours and forgot to look at any other art.</p>
+        </div>
+      </div>
+
+      <div class="story-item story-item--reverse reveal">
+        <div class="story-image-wrap">
+          <div class="story-image story-img-2"></div>
+        </div>
+        <div class="story-card">
+          <span class="story-year">2021</span>
+          <h3>Adventures Together</h3>
+          <p>From hiking the Amalfi Coast to cooking pasta at 2 a.m. in a Venetian apartment — two years of adventures, laughter, and discovering that home is wherever the other person is.</p>
+        </div>
+      </div>
+
+      <div class="story-item reveal">
+        <div class="story-image-wrap">
+          <div class="story-image story-img-3"></div>
+        </div>
+        <div class="story-card">
+          <span class="story-year">2025</span>
+          <h3>The Proposal</h3>
+          <p>Under the wisteria-draped pergola of the very same gallery where they first met, James got down on one knee. Isabella said yes before he could finish the question.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Details -->
+  <section class="details" id="details">
+    <div class="details-bg"></div>
+    <div class="details-content">
+      <div class="section-tag reveal" style="color:#f5e9d8">Event Details</div>
+      <div class="details-grid">
+
+        <div class="detail-card reveal">
+          <div class="detail-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="6" y="10" width="36" height="32" rx="3" stroke="currentColor" stroke-width="2"/>
+              <path d="M6 18h36" stroke="currentColor" stroke-width="2"/>
+              <path d="M16 6v8M32 6v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M14 27h4v4h-4zM22 27h4v4h-4zM30 27h4v4h-4z" fill="currentColor"/>
+            </svg>
+          </div>
+          <h4>Date &amp; Time</h4>
+          <p>Saturday, June 14, 2026</p>
+          <p class="detail-sub">Ceremony at 4:00 PM<br/>Reception at 6:30 PM</p>
+        </div>
+
+        <div class="detail-card reveal">
+          <div class="detail-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 4C16.268 4 10 10.268 10 18c0 11 14 26 14 26s14-15 14-26c0-7.732-6.268-14-14-14z" stroke="currentColor" stroke-width="2"/>
+              <circle cx="24" cy="18" r="5" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <h4>Venue</h4>
+          <p>The Grand Belmont Estate</p>
+          <p class="detail-sub">Via del Chianti 42<br/>Siena, Tuscany, Italy</p>
+        </div>
+
+        <div class="detail-card reveal">
+          <div class="detail-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 4l5.09 10.31L40 15.73l-8 7.8 1.89 11.01L24 29.15l-9.89 5.39L16 23.53 8 15.73l10.91-1.42L24 4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h4>Dress Code</h4>
+          <p>Black Tie Optional</p>
+          <p class="detail-sub">Formal or semi-formal attire<br/>Soft garden tones welcome</p>
+        </div>
+
+        <div class="detail-card reveal">
+          <div class="detail-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 14h28v24H10z" stroke="currentColor" stroke-width="2" rx="2"/>
+              <path d="M10 20h28" stroke="currentColor" stroke-width="2"/>
+              <path d="M18 8v8M30 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M16 28h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M16 33h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h4>Accommodations</h4>
+          <p>Hotel Villa Toscana</p>
+          <p class="detail-sub">Special rates reserved<br/>Use code BELLJUNE26</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Schedule -->
+  <section class="schedule" id="schedule">
+    <div class="section-tag reveal">Day-Of Schedule</div>
+    <div class="schedule-list">
+      <div class="schedule-item reveal">
+        <span class="schedule-time">3:30 PM</span>
+        <div class="schedule-dot"></div>
+        <div class="schedule-info">
+          <h4>Guest Arrival &amp; Cocktail Hour</h4>
+          <p>Welcome champagne and live string quartet in the rose garden</p>
+        </div>
+      </div>
+      <div class="schedule-item reveal">
+        <span class="schedule-time">4:00 PM</span>
+        <div class="schedule-dot"></div>
+        <div class="schedule-info">
+          <h4>Wedding Ceremony</h4>
+          <p>An intimate ceremony under the historic wisteria pergola</p>
+        </div>
+      </div>
+      <div class="schedule-item reveal">
+        <span class="schedule-time">5:00 PM</span>
+        <div class="schedule-dot"></div>
+        <div class="schedule-info">
+          <h4>Photography &amp; Garden Stroll</h4>
+          <p>Explore the estate grounds, Tuscan wine &amp; light bites available</p>
+        </div>
+      </div>
+      <div class="schedule-item reveal">
+        <span class="schedule-time">6:30 PM</span>
+        <div class="schedule-dot"></div>
+        <div class="schedule-info">
+          <h4>Reception Dinner</h4>
+          <p>Five-course Italian dinner in the Grand Belmont ballroom</p>
+        </div>
+      </div>
+      <div class="schedule-item reveal">
+        <span class="schedule-time">9:00 PM</span>
+        <div class="schedule-dot"></div>
+        <div class="schedule-info">
+          <h4>Dancing &amp; Celebration</h4>
+          <p>Live jazz band, dancing, dessert bar, and midnight send-off</p>
+        </div>
+      </div>
+      <div class="schedule-item reveal">
+        <span class="schedule-time">12:00 AM</span>
+        <div class="schedule-dot schedule-dot--last"></div>
+        <div class="schedule-info">
+          <h4>Sparkler Send-Off</h4>
+          <p>A glittering farewell under the Tuscan stars</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="gallery" id="gallery">
+    <div class="section-tag reveal">A Glimpse of Us</div>
+    <div class="gallery-grid reveal">
+      <div class="gallery-item g-tall" style="background-image:url('https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80')"></div>
+      <div class="gallery-item" style="background-image:url('https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600&q=80')"></div>
+      <div class="gallery-item" style="background-image:url('https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600&q=80')"></div>
+      <div class="gallery-item g-wide" style="background-image:url('https://images.unsplash.com/photo-1606800052052-a08af7148866?w=900&q=80')"></div>
+      <div class="gallery-item" style="background-image:url('https://images.unsplash.com/photo-1529636798458-92182e662485?w=600&q=80')"></div>
+      <div class="gallery-item g-tall" style="background-image:url('https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800&q=80')"></div>
+    </div>
+  </section>
+
+  <!-- RSVP -->
+  <section class="rsvp" id="rsvp">
+    <div class="rsvp-bg"></div>
+    <div class="rsvp-content">
+      <div class="section-tag reveal">RSVP</div>
+      <p class="rsvp-subtitle reveal">Kindly respond by <strong>May 1, 2026</strong></p>
+      <form class="rsvp-form reveal" id="rsvp-form" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fname">First Name</label>
+            <input type="text" id="fname" name="fname" placeholder="Isabella" required />
+          </div>
+          <div class="form-group">
+            <label for="lname">Last Name</label>
+            <input type="text" id="lname" name="lname" placeholder="Rossi" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required />
+          </div>
+          <div class="form-group">
+            <label for="guests">Number of Guests</label>
+            <select id="guests" name="guests">
+              <option value="1">1 — Just Me</option>
+              <option value="2" selected>2 — Myself &amp; a Guest</option>
+              <option value="3">3 Guests</option>
+              <option value="4">4 Guests</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row form-row--attendance">
+          <p class="attendance-label">Will you be attending?</p>
+          <div class="attendance-options">
+            <label class="radio-label">
+              <input type="radio" name="attendance" value="yes" checked />
+              <span class="radio-custom"></span>
+              Joyfully Accepts
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="attendance" value="no" />
+              <span class="radio-custom"></span>
+              Regretfully Declines
+            </label>
+          </div>
+        </div>
+        <div class="form-group form-group--full">
+          <label for="dietary">Dietary Restrictions or Notes</label>
+          <textarea id="dietary" name="dietary" rows="3" placeholder="Any dietary needs, allergies, or a special message for the couple…"></textarea>
+        </div>
+        <button type="submit" class="rsvp-submit">Send My RSVP</button>
+      </form>
+      <div class="rsvp-success" id="rsvp-success">
+        <div class="success-icon">
+          <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="2"/>
+            <path d="M18 30l9 9 15-18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Thank you!</h3>
+        <p>We have received your RSVP and can't wait to celebrate with you.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-monogram">I &amp; J</div>
+    <p class="footer-date">June 14, 2026 · Tuscany, Italy</p>
+    <p class="footer-quote">"I have found the one whom my soul loves."</p>
+    <p class="footer-fine">For questions, contact <a href="mailto:hello@isabellajames2026.com">hello@isabellajames2026.com</a></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
