@@ -1,0 +1,2539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedSearch — Intelligent Supply Search</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── DESIGN TOKENS ─────────────────────────────────────────── */
+:root {
+  --bg:         #f4f5f7;
+  --surface:    #ffffff;
+  --surface-2:  #f0f2f5;
+  --border:     #dde1e7;
+  --border-h:   #b3bfc9;
+  --primary:    #0052cc;
+  --primary-dk: #0043a8;
+  --primary-dim:#e8f0fc;
+  --success:    #006644; --success-bg:#e3fcef;
+  --warning:    #7a4100; --warning-bg:#fff4e6;
+  --danger:     #bf2600; --danger-bg: #ffebe6;
+  --purple:     #403294; --purple-bg: #eae6ff;
+  --t1: #172b4d; --t2: #42526e; --t3: #8993a4; --t4: #c1c7d0;
+  /* aliases */
+  --teal:var(--primary); --teal-dim:var(--primary-dim);
+  --blue:var(--primary); --blue-dim:var(--primary-dim);
+  --amber:var(--warning); --amber-dim:var(--warning-bg);
+  --red:var(--danger);   --red-dim:var(--danger-bg);
+  --purple-dim:var(--purple-bg);
+  --text-primary:var(--t1); --text-secondary:var(--t2); --text-muted:var(--t3);
+  --r:8px; --r-lg:12px;
+  /* shadows */
+  --sh-xs:0 1px 2px rgba(23,43,77,.05);
+  --sh-sm:0 2px 6px rgba(23,43,77,.09);
+  --sh-md:0 4px 14px rgba(23,43,77,.12);
+  --sh-focus:0 0 0 3px rgba(0,82,204,.18);
+  /* layout */
+  --header-h:64px; --sidebar:240px; --max-w:1120px;
+  --mono:'IBM Plex Mono',monospace; --sans:'Sora',sans-serif;
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--sans);font-size:13px;background:var(--bg);color:var(--t1);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;}
+
+/* ── HEADER ────────────────────────────────────────────────── */
+.hdr{
+  position:sticky;top:0;z-index:200;
+  background:rgba(255,255,255,.97);
+  border-bottom:1px solid var(--border);
+  box-shadow:var(--sh-xs);
+  backdrop-filter:blur(12px);
+  padding:0 24px;
+  display:grid;
+  grid-template-columns:160px 1fr 120px;
+  align-items:start;
+  gap:24px;
+}
+.logo{height:var(--header-h);display:flex;align-items:center;font-size:16px;font-weight:700;letter-spacing:-.01em;color:var(--t1);user-select:none;}
+.logo span{color:var(--primary);}
+.hdr-search-wrap{display:flex;flex-direction:column;padding:10px 0;}
+.hdr-right{height:var(--header-h);display:flex;align-items:center;justify-content:flex-end;gap:8px;}
+.hdr-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s;}
+.hdr-icon:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-dim);}
+
+/* ── SEARCH BOX ─────────────────────────────────────────────── */
+.s-wrap{position:relative;}
+.s-box{
+  display:flex;align-items:center;
+  height:44px;
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  padding:0 8px 0 14px;
+  gap:10px;
+  box-shadow:var(--sh-xs);
+  transition:border-color .18s,box-shadow .18s;
+}
+.s-box:focus-within{border-color:var(--primary);box-shadow:var(--sh-focus);}
+.s-ico{color:var(--t3);flex-shrink:0;display:flex;}
+#qi{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:var(--sans);font-size:14px;color:var(--t1);caret-color:var(--primary);}
+#qi::placeholder{color:var(--t3);}
+.s-btn{
+  height:32px;padding:0 16px;
+  background:var(--primary);color:#fff;
+  border:none;border-radius:8px;
+  font-family:var(--sans);font-size:12px;font-weight:600;
+  cursor:pointer;white-space:nowrap;
+  transition:background .15s;flex-shrink:0;
+}
+.s-btn:hover{background:var(--primary-dk);}
+.s-btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+
+/* Intent row — in-flow inside header, collapses to 0 when no intent detected */
+.intent-row{
+  display:flex;align-items:center;gap:8px;
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+  padding:0 10px;
+  margin-top:0;
+  pointer-events:none;
+  background:var(--surface-2);
+  border:1px solid transparent;
+  border-radius:8px;
+  transition:max-height .22s ease, opacity .18s ease, padding .22s ease, margin-top .22s ease, border-color .22s;
+}
+.intent-row.has-intent{
+  max-height:40px;
+  opacity:1;
+  padding:6px 10px;
+  margin-top:6px;
+  pointer-events:auto;
+  border-color:var(--border);
+}
+.intent-lbl{font-size:10px;font-family:var(--mono);color:var(--t3);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:2px 8px;border-radius:999px;
+  font-size:10px;font-weight:600;font-family:var(--mono);
+  letter-spacing:.04em;text-transform:uppercase;
+}
+.badge.product{background:var(--primary-dim);color:var(--primary);}
+.badge.document{background:var(--primary-dim);color:var(--primary);}
+.badge.qa{background:var(--purple-bg);color:var(--purple);}
+.badge.ambiguous{background:var(--warning-bg);color:var(--warning);}
+.conf-bar{width:80px;height:3px;background:var(--surface-2);border-radius:999px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:999px;transition:width .3s,background .3s;}
+.conf-pct{font-size:10px;font-family:var(--mono);color:var(--t3);}
+
+/* ── AUTOCOMPLETE ───────────────────────────────────────────── */
+.ac-drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--sh-md);overflow:hidden;z-index:300;display:none;}
+.ac-drop.open{display:block;}
+.ac-item{padding:9px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:12px;color:var(--t2);transition:background .1s;}
+.ac-item:hover{background:var(--surface-2);color:var(--t1);}
+.ac-ico{width:20px;font-size:14px;flex-shrink:0;text-align:center;}
+
+/* ── DISAMBIGUATION ─────────────────────────────────────────── */
+.disambig{display:none;background:var(--surface);border:1.5px solid var(--warning);border-radius:10px;padding:14px 16px;box-shadow:var(--sh-sm);margin-top:6px;}
+.disambig.open{display:block;}
+.disambig-title{font-size:10px;font-family:var(--mono);color:var(--warning);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.disambig-opts{display:flex;flex-wrap:wrap;gap:8px;}
+.disambig-btn{padding:7px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--t1);cursor:pointer;font-family:var(--sans);transition:all .15s;}
+.disambig-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-dim);}
+
+/* ── HERO STRIP (chips only) ────────────────────────────────── */
+.hero{max-width:var(--max-w);margin:0 auto;padding:12px 24px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  height:30px;padding:0 12px;
+  border:1px solid var(--border);border-radius:999px;
+  font-size:12px;color:var(--t2);
+  cursor:pointer;background:var(--surface);font-family:var(--sans);
+  display:inline-flex;align-items:center;
+  box-shadow:var(--sh-xs);
+  transition:all .15s;
+}
+.chip:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-dim);}
+
+/* ── RESULTS AREA ───────────────────────────────────────────── */
+.results{max-width:var(--max-w);margin:0 auto;padding:24px 24px 80px;animation:fadeUp .22s ease-out;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── RESULT HEADER ──────────────────────────────────────────── */
+.r-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.r-meta{font-size:12px;font-family:var(--mono);color:var(--t3);margin-top:4px;}
+.r-tag{flex-shrink:0;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em;}
+
+/* ── TABS ───────────────────────────────────────────────────── */
+.res-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.rtab{
+  padding:9px 18px;
+  font-size:13px;font-weight:500;font-family:var(--sans);
+  color:var(--t2);background:none;border:none;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+  cursor:pointer;white-space:nowrap;
+  transition:color .15s,border-color .15s;
+}
+.rtab:hover{color:var(--t1);}
+.rtab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600;}
+.tab-count{font-size:11px;font-family:var(--mono);margin-left:5px;opacity:.6;}
+
+/* ── PRODUCT LAYOUT ─────────────────────────────────────────── */
+.prod-layout{display:grid;grid-template-columns:var(--sidebar) 1fr;gap:24px;align-items:start;}
+.prod-main{display:flex;flex-direction:column;gap:16px;}
+.filter-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.filter-row-left{display:flex;align-items:center;gap:12px;}
+.result-count-label{font-size:12px;color:var(--t3);font-family:var(--mono);}
+.sort-sel{height:32px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);font-size:12px;font-family:var(--sans);color:var(--t2);cursor:pointer;}
+.sort-sel:focus{outline:none;border-color:var(--primary);}
+.view-toggle{display:flex;gap:2px;}
+.vtbtn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--t3);cursor:pointer;transition:all .15s;}
+.vtbtn:hover,.vtbtn.active{background:var(--surface-2);color:var(--t1);border-color:var(--primary);}
+
+/* ── PRODUCT CARD GRID ──────────────────────────────────────── */
+.pcard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(192px,1fr));gap:16px;}
+.pcard{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  box-shadow:var(--sh-xs);
+  transition:box-shadow .18s,border-color .18s,transform .18s;
+}
+.pcard:hover{border-color:var(--primary);box-shadow:var(--sh-md);transform:translateY(-2px);}
+
+/* Image zone */
+.pcard-imgzone{
+  height:148px;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--border);
+  overflow:hidden;
+}
+.pcard-imgzone svg{width:90px;height:90px;}
+
+/* Card body — 12px padding, 8px between groups */
+.pcard-body{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;}
+.pcard-brand-lbl{font-size:10px;color:var(--t3);font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase;}
+.pcard-title{font-size:12px;font-weight:600;color:var(--primary);line-height:1.35;cursor:pointer;}
+.pcard-title:hover{text-decoration:underline;}
+.pcard-ids{display:flex;flex-direction:column;gap:3px;}
+.pcard-id-row{display:flex;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);color:var(--t2);}
+.pcard-id-lbl{color:var(--t3);}
+.pcard-copy{background:none;border:none;cursor:pointer;color:var(--t3);padding:0;line-height:1;transition:color .12s;}
+.pcard-copy:hover{color:var(--primary);}
+.pcard-swatches{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.swatch{width:16px;height:16px;border-radius:999px;border:2px solid rgba(0,0,0,.1);cursor:pointer;transition:transform .12s,border-color .12s;}
+.swatch:hover,.swatch.sel{transform:scale(1.2);border-color:var(--primary);}
+.swatch-more{font-size:10px;font-family:var(--mono);color:var(--t3);background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:1px 5px;cursor:pointer;}
+.pcard-units{display:flex;gap:4px;}
+.unit-btn{flex:1;height:26px;border:1px solid var(--border);border-radius:6px;background:none;font-size:10px;font-family:var(--mono);color:var(--t2);cursor:pointer;transition:all .12s;}
+.unit-btn.active{background:var(--primary-dim);border-color:var(--primary);color:var(--primary);font-weight:600;}
+.pcard-avail-row{display:flex;align-items:center;gap:5px;font-size:10px;}
+.avail-dot-sm{width:8px;height:8px;border-radius:999px;flex-shrink:0;}
+.avail-more{color:var(--primary);font-size:10px;}
+.avail-more:hover{text-decoration:underline;}
+.pcard-price-row{display:flex;align-items:flex-end;justify-content:space-between;margin-top:auto;padding-top:8px;border-top:1px solid var(--border);}
+.pcard-price-block{display:flex;flex-direction:column;}
+.pcard-price-lbl{font-size:10px;color:var(--t3);}
+.pcard-price-val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--t1);line-height:1.1;}
+.qty-ctrl{display:flex;align-items:center;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.qty-btn{width:28px;height:28px;background:var(--surface-2);border:none;color:var(--t1);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s;}
+.qty-btn:hover{background:var(--border-h);}
+.qty-val{width:32px;height:28px;border:none;border-left:1px solid var(--border);border-right:1px solid var(--border);background:var(--surface);color:var(--t1);font-size:12px;font-family:var(--mono);text-align:center;font-weight:600;outline:none;}
+.pcard-compare{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);cursor:pointer;}
+.pcard-compare input{accent-color:var(--primary);width:13px;height:13px;cursor:pointer;}
+
+/* ── FILTER SIDEBAR ─────────────────────────────────────────── */
+.tab-sidebar{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  position:sticky;
+  top:calc(var(--header-h) + 16px);
+  box-shadow:var(--sh-xs);
+}
+.fsec{border-bottom:1px solid var(--border);}
+.fsec:last-child{border-bottom:none;}
+.fsec-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;font-size:12px;font-weight:600;color:var(--t1);cursor:pointer;user-select:none;transition:background .12s;}
+.fsec-hdr:hover{background:var(--surface-2);}
+.fsec-icon{font-size:13px;color:var(--t3);}
+.fsec.collapsed .fsec-body{display:none;}
+.fsec-body{padding:4px 16px 12px;}
+.fcheck{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:12px;color:var(--t2);transition:color .12s;}
+.fcheck:hover{color:var(--t1);}
+.fcheck input{accent-color:var(--primary);width:14px;height:14px;flex-shrink:0;cursor:pointer;}
+.fcheck span:first-of-type{flex:1;}
+.fcount{font-size:10px;font-family:var(--mono);color:var(--t3);}
+.fmore{background:none;border:none;color:var(--primary);font-size:11px;font-family:var(--sans);cursor:pointer;padding:4px 0;display:block;}
+.fmore:hover{text-decoration:underline;}
+
+/* ── DOCUMENT TABLE ─────────────────────────────────────────── */
+.doclist{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.col-lbl-row{display:grid;grid-template-columns:2fr 110px 130px 90px;gap:16px;padding:9px 20px;background:var(--surface-2);}
+.col-lbl{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;}
+.ditem{display:grid;grid-template-columns:2fr 110px 130px 90px;gap:16px;padding:14px 20px;background:var(--surface);align-items:center;cursor:pointer;transition:background .12s;}
+.ditem:hover{background:var(--surface-2);}
+.dtitle{font-size:13px;font-weight:500;color:var(--primary);text-decoration:none;}
+.dtitle:hover{text-decoration:underline;}
+.dtag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-family:var(--mono);font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+.cc{background:var(--primary-dim);color:var(--primary);}
+.cr{background:var(--danger-bg);color:var(--danger);}
+.cb{background:var(--warning-bg);color:var(--warning);}
+.ca{background:var(--purple-bg);color:var(--purple);}
+.cl{background:var(--success-bg);color:var(--success);}
+.dup{font-size:12px;font-family:var(--mono);color:var(--t2);}
+.dstat{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-family:var(--mono);font-weight:600;}
+.s-cur{background:var(--success-bg);color:var(--success);}
+.s-rev{background:var(--warning-bg);color:var(--warning);}
+.s-exp{background:var(--danger-bg);color:var(--danger);}
+
+/* ── TAB TWO-COLUMN (doc/video/guide tabs) ──────────────────── */
+.tab-layout{display:grid;grid-template-columns:var(--sidebar) 1fr;gap:24px;align-items:start;}
+.tab-main{display:flex;flex-direction:column;gap:16px;}
+.tab-main-hdr{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--t2);padding-bottom:12px;border-bottom:1px solid var(--border);}
+.tab-main-hdr strong{color:var(--t1);}
+.tab-main-hdr em{color:var(--t1);font-style:normal;font-weight:600;}
+
+/* ── DOCUMENT ITEM v2 ───────────────────────────────────────── */
+.dlist-v2{display:flex;flex-direction:column;gap:12px;}
+.ditem-v2{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:flex-start;gap:14px;cursor:pointer;box-shadow:var(--sh-xs);transition:box-shadow .15s,border-color .15s;}
+.ditem-v2:hover{border-color:var(--primary);box-shadow:var(--sh-sm);}
+.dicon{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dicon-video{background:#1d4ed8;} .dicon-pdf{background:#dc2626;} .dicon-web{background:#7c3aed;}
+.ditem-v2-body{flex:1;min-width:0;}
+.ditem-v2-title{font-size:13px;font-weight:600;color:var(--primary);text-decoration:none;display:block;margin-bottom:5px;line-height:1.35;}
+.ditem-v2-title:hover{text-decoration:underline;}
+.ditem-v2-desc{font-size:12px;color:var(--t2);line-height:1.55;margin-bottom:8px;}
+.ditem-v2-meta{display:flex;align-items:center;flex-wrap:wrap;gap:12px;}
+.dmeta-item{display:flex;align-items:center;gap:4px;font-size:11px;font-family:var(--mono);color:var(--t3);}
+.ditem-v2-action{flex-shrink:0;display:flex;align-items:center;}
+
+/* ── CONTENT LIST RESULTS ──────────────────────────────────── */
+.content-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.content-summary{font-size:13px;color:var(--t2);}
+.content-summary strong,.content-summary em{color:var(--t1);font-style:normal;font-weight:600;}
+.content-sort{display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.content-sort label{font-size:12px;color:var(--t2);}
+.content-list{display:flex;flex-direction:column;gap:12px;}
+.content-item{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:12px;
+  display:grid;
+  grid-template-columns:44px 1fr auto;
+  gap:14px;
+  align-items:start;
+  box-shadow:var(--sh-xs);
+  transition:border-color .15s,box-shadow .15s;
+}
+.content-item:hover{border-color:var(--border-h);box-shadow:var(--sh-sm);}
+.content-icon{
+  width:44px;height:44px;border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.content-icon.video{background:#e8f0ff;color:#0052cc;}
+.content-icon.pdf{background:#fff0eb;color:#bf2600;}
+.content-icon.web{background:#eee9ff;color:#403294;}
+.content-body{min-width:0;}
+.content-title{font-size:12px;font-weight:700;color:#07406f;line-height:1.35;text-decoration:none;display:block;margin-bottom:4px;}
+.content-title:hover{text-decoration:underline;}
+.content-desc{font-size:12px;color:var(--t1);line-height:1.45;margin-bottom:10px;max-width:720px;}
+.content-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.content-action{display:flex;align-items:center;justify-content:flex-end;padding-top:1px;}
+.content-action-btn{
+  min-width:84px;height:32px;padding:0 14px;border:1.5px solid #0b4f82;border-radius:999px;
+  background:transparent;color:#0b4f82;font-size:12px;font-weight:700;font-family:var(--sans);
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;
+  transition:background .15s,border-color .15s,color .15s;
+}
+.content-action-btn:hover{background:#e8f0fc;border-color:var(--primary);color:var(--primary);}
+
+/* ── Q&A ────────────────────────────────────────────────────── */
+.qa-ai-wrap{display:flex;flex-direction:column;gap:24px;}
+.qa-2col{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.qa-ai-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:12px;padding:20px;box-shadow:var(--sh-sm);}
+.qa-ai-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.qa-ai-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;background:var(--primary-dim);color:var(--primary);font-size:10px;font-weight:600;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;}
+.qa-feedback{display:flex;align-items:center;gap:6px;}
+.qa-fb-btn{height:28px;padding:0 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:var(--sans);color:var(--t2);cursor:pointer;transition:all .12s;}
+.qa-fb-btn:hover{border-color:var(--primary);color:var(--primary);}
+.qa-query-echo{font-size:11px;font-family:var(--mono);color:var(--t3);margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.qa-answer-body{font-size:14px;line-height:1.75;color:var(--t1);}
+.qa-answer-body p{margin-bottom:12px;} .qa-answer-body p:last-child{margin-bottom:0;}
+.qa-answer-body strong{font-weight:600;} .qa-answer-body ul,.qa-answer-body ol{padding-left:18px;margin:8px 0;}
+.qa-answer-body li{margin-bottom:5px;}
+.qa-section{display:flex;flex-direction:column;gap:12px;}
+.qa-sec-hdr{display:flex;align-items:center;justify-content:space-between;}
+.qa-sec-title{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--t3);display:flex;align-items:center;gap:8px;}
+.qa-sec-all{font-size:10px;color:var(--primary);background:none;border:none;cursor:pointer;font-family:var(--mono);}
+.qa-sec-all:hover{text-decoration:underline;}
+.qa-doc-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;gap:12px;cursor:pointer;box-shadow:var(--sh-xs);transition:all .15s;align-items:flex-start;}
+.qa-doc-card:hover{border-color:var(--primary);box-shadow:var(--sh-sm);}
+.qa-doc-icon{width:32px;height:32px;border-radius:6px;background:var(--primary-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.qa-doc-info{flex:1;min-width:0;}
+.qa-doc-title{font-size:12px;font-weight:500;color:var(--t1);line-height:1.35;margin-bottom:3px;}
+.qa-doc-meta{font-size:10px;font-family:var(--mono);color:var(--t3);}
+.qa-doc-arrow{color:var(--t3);flex-shrink:0;}
+.qa-prod-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;gap:10px;cursor:pointer;align-items:flex-start;box-shadow:var(--sh-xs);transition:all .15s;}
+.qa-prod-card:hover{border-color:var(--primary);box-shadow:var(--sh-sm);}
+.qa-prod-icon{width:36px;height:36px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.qa-prod-info{flex:1;min-width:0;}
+.qa-prod-name{font-size:12px;font-weight:500;color:var(--t1);line-height:1.35;margin-bottom:3px;}
+.qa-prod-sku{font-size:10px;font-family:var(--mono);color:var(--primary);}
+
+/* ── SKELETON ───────────────────────────────────────────────── */
+.skel{background:linear-gradient(90deg,#eef0f3 0%,#f5f6f8 50%,#eef0f3 100%);background-size:300% 100%;animation:shimmer 1.5s infinite;border-radius:4px;}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.skel-line{height:12px;margin-bottom:8px;}
+.skel-line.w-full{width:100%}.skel-line.w-80{width:80%}.skel-line.w-60{width:60%}
+
+/* ── PAGINATION ─────────────────────────────────────────────── */
+.pages{display:flex;gap:4px;justify-content:center;margin-top:24px;}
+.pgbtn{width:32px;height:32px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--mono);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-xs);transition:all .12s;}
+.pgbtn:hover{border-color:var(--primary);color:var(--primary);}
+.pgbtn.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:none;}
+
+/* ── VIDEO CARDS ────────────────────────────────────────────── */
+.qa-video-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
+.qa-video-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:var(--sh-xs);transition:box-shadow .15s,transform .15s;}
+.qa-video-card:hover{box-shadow:var(--sh-md);transform:translateY(-2px);}
+.qa-video-thumb{height:110px;display:flex;align-items:center;justify-content:center;position:relative;}
+.qa-video-play{width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:999px;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.4);transition:all .2s;}
+.qa-video-card:hover .qa-video-play{background:rgba(255,255,255,.3);transform:scale(1.08);}
+.qa-video-duration{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:4px;}
+.qa-video-body{padding:10px 12px;}
+.qa-video-source{font-size:10px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--t3);margin-bottom:3px;}
+.qa-video-title{font-size:12px;font-weight:500;color:var(--t1);line-height:1.35;}
+
+/* ── DOCUMENT CARDS (same grid as video) ────────────────────── */
+.doc-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
+.doc-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:var(--sh-xs);transition:box-shadow .15s,transform .15s;display:flex;flex-direction:column;}
+.doc-card:hover{box-shadow:var(--sh-md);transform:translateY(-2px);}
+.doc-card-header{height:104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;padding:16px;}
+.doc-card-icon{width:40px;height:40px;border-radius:8px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;}
+.doc-card-badge{font-size:10px;font-weight:700;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.2);color:#fff;padding:2px 8px;border-radius:999px;}
+.doc-card-body{padding:12px;flex:1;display:flex;flex-direction:column;gap:6px;}
+.doc-card-title{font-size:12px;font-weight:600;color:var(--primary);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.doc-card-title:hover{text-decoration:underline;}
+.doc-card-desc{font-size:11px;color:var(--t2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1;}
+.doc-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto;}
+.doc-card-meta-item{display:flex;align-items:center;gap:3px;font-size:10px;font-family:var(--mono);color:var(--t3);}
+.doc-card-footer{padding:10px 12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.doc-card-stat{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:999px;font-weight:600;}
+.doc-dl-btn{height:28px;padding:0 12px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
+.doc-dl-btn:hover{background:var(--primary-dk);}
+.doc-view-btn{height:28px;padding:0 12px;background:transparent;color:var(--primary);border:1.5px solid var(--primary);border-radius:6px;font-size:11px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;}
+.doc-view-btn:hover{background:var(--primary-dim);}
+
+/* ── TEST PANEL ─────────────────────────────────────────────── */
+.tpanel{max-width:var(--max-w);margin:32px auto;padding:0 24px 64px;}
+.tpanel-hdr{font-size:10px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--t3);margin-bottom:16px;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none;}
+.tpanel-hdr:hover{color:var(--t2);}
+#tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+.tq{padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:4px;box-shadow:var(--sh-xs);}
+.tq:hover{border-color:var(--primary);background:var(--primary-dim);}
+.tq-text{font-size:12px;color:var(--t1);font-weight:500;}
+.tq-exp{font-size:10px;font-family:var(--mono);color:var(--t3);}
+.tq-num{font-size:10px;font-family:var(--mono);color:var(--t4);}
+
+/* ── UTILS ──────────────────────────────────────────────────── */
+.hidden{display:none!important;}
+.empty-state{text-align:center;padding:64px 32px;color:var(--t2);}
+
+/* ── FEATURE 1: EXACT SKU DISAMBIG ─────────────────────────── */
+.exact-dismabig-panel{padding:12px 14px;background:var(--surface);border:1.5px solid #00875a;border-radius:10px;margin-top:6px;}
+.exact-disambig-product{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.exact-disambig-img{width:44px;height:44px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.exact-disambig-img svg{width:40px;height:40px;}
+.exact-disambig-name{font-size:12px;font-weight:600;color:var(--t1);line-height:1.3;}
+.exact-disambig-sku{font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:2px;}
+.exact-disambig-price{font-size:13px;font-weight:600;color:var(--t1);margin-top:2px;}
+.exact-disambig-actions{display:flex;gap:8px;}
+.exact-disambig-btn-primary{flex:1;height:34px;background:#00875a;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.exact-disambig-btn-primary:hover{background:#006644;}
+.exact-disambig-btn-secondary{flex:1;height:34px;background:var(--surface);color:var(--primary);border:1.5px solid var(--primary);border-radius:6px;font-size:12px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.exact-disambig-btn-secondary:hover{background:var(--primary-dim);}
+
+/* ── FEATURE 2: ITEM DETAIL PAGE ────────────────────────────── */
+.item-page{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);}
+.item-page-hero{display:grid;grid-template-columns:300px 1fr;gap:0;}
+.item-page-imgzone{background:var(--surface-2);display:flex;align-items:center;justify-content:center;padding:32px;border-right:1px solid var(--border);}
+.item-page-imgzone svg{width:160px;height:160px;}
+.item-page-main{padding:28px 28px 24px;}
+.item-page-breadcrumb{font-size:10px;font-family:var(--mono);color:var(--t3);margin-bottom:10px;}
+.item-page-name{font-size:18px;font-weight:600;color:var(--t1);line-height:1.3;margin-bottom:8px;}
+.item-page-ids{font-size:11px;font-family:var(--mono);color:var(--t3);display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+.item-page-ids span{color:var(--t1);}
+.item-spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;}
+.item-spec-cell{padding:8px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.item-spec-cell:nth-child(even){border-right:none;}
+.item-spec-cell:last-child,.item-spec-cell:nth-last-child(2){border-bottom:none;}
+.item-spec-label{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+.item-spec-val{font-size:12px;font-weight:500;color:var(--t1);}
+.item-page-price-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.item-page-price{font-size:24px;font-weight:600;color:var(--t1);}
+.item-page-price-unit{font-size:11px;color:var(--t3);font-family:var(--mono);}
+.item-page-actions{display:flex;gap:8px;align-items:center;}
+.item-add-btn{height:38px;padding:0 20px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .15s;}
+.item-add-btn:hover{background:var(--primary-dk);}
+.item-compare-btn{height:38px;padding:0 16px;background:var(--surface);color:var(--primary);border:1.5px solid var(--primary);border-radius:8px;font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:all .15s;}
+.item-compare-btn:hover{background:var(--primary-dim);}
+.item-page-tabs{border-top:1px solid var(--border);display:flex;gap:0;}
+.item-page-tab{padding:10px 20px;font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.item-page-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+.item-page-tab-body{padding:20px 24px;border-top:1px solid var(--border);}
+
+/* ── FEATURE 3: SKU COMPARISON PAGE ─────────────────────────── */
+.compare-page{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);}
+.compare-page-hdr{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.compare-page-title{font-size:16px;font-weight:600;color:var(--t1);}
+.compare-page-sub{font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:2px;}
+.compare-grid{display:grid;gap:0;}
+.compare-row{display:grid;align-items:stretch;border-bottom:1px solid var(--border);}
+.compare-row:last-child{border-bottom:none;}
+.compare-row-label{padding:12px 16px;background:var(--surface-2);font-size:11px;font-family:var(--mono);font-weight:500;color:var(--t2);display:flex;align-items:center;border-right:1px solid var(--border);}
+.compare-row-val{padding:12px 16px;font-size:12px;color:var(--t1);display:flex;align-items:center;border-right:1px solid var(--border);}
+.compare-row-val:last-child{border-right:none;}
+.compare-row-val.winner{background:#e3fcef;}
+.compare-prod-header{padding:16px 16px 14px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.compare-prod-header:last-child{border-right:none;}
+.compare-prod-img{display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.compare-prod-img svg{width:64px;height:64px;}
+.compare-prod-name{font-size:12px;font-weight:600;color:var(--primary);line-height:1.3;margin-bottom:4px;}
+.compare-prod-sku{font-family:var(--mono);font-size:10px;color:var(--t3);}
+.compare-prod-price{font-size:16px;font-weight:600;color:var(--t1);margin-top:6px;}
+.compare-badge{display:inline-flex;padding:2px 6px;border-radius:3px;font-size:9px;font-family:var(--mono);font-weight:700;}
+.compare-add-btn{width:100%;height:32px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;font-family:var(--sans);cursor:pointer;margin-top:10px;transition:background .15s;}
+.compare-add-btn:hover{background:var(--primary-dk);}
+.compare-win-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:var(--mono);font-weight:700;color:#006644;background:#e3fcef;padding:2px 6px;border-radius:3px;}
+
+/* ── FEATURE 4: FEATURE REDIRECT ─────────────────────────────── */
+.feature-redirect{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);}
+.feature-redirect-hero{background:linear-gradient(135deg,#0052cc 0%,#003d99 100%);padding:36px 32px;display:flex;align-items:center;gap:24px;}
+.feature-redirect-icon{width:64px;height:64px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
+.feature-redirect-heading{color:#fff;}
+.feature-redirect-label{font-size:10px;font-family:var(--mono);color:rgba(255,255,255,.6);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.feature-redirect-title{font-size:22px;font-weight:600;line-height:1.25;margin-bottom:4px;}
+.feature-redirect-sub{font-size:13px;color:rgba(255,255,255,.65);}
+.feature-redirect-body{padding:24px 28px;}
+.feature-redirect-desc{font-size:13px;color:var(--t2);line-height:1.65;margin-bottom:20px;max-width:560px;}
+.feature-redirect-cta{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 20px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .15s;text-decoration:none;}
+.feature-redirect-cta:hover{background:var(--primary-dk);}
+.feature-redirect-links{margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+.feature-redirect-links-title{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;}
+.feature-redirect-link-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.feature-redirect-link{padding:12px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;}
+.feature-redirect-link:hover{border-color:var(--primary);background:var(--primary-dim);}
+.feature-redirect-link-icon{font-size:16px;margin-bottom:4px;}
+.feature-redirect-link-name{font-size:12px;font-weight:500;color:var(--t1);}
+.feature-redirect-link-desc{font-size:10.5px;color:var(--t3);margin-top:2px;}
+
+/* ── FEATURE 5: ORDER DETAILS PAGE ──────────────────────────── */
+.order-page{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);}
+.order-page-hdr{padding:20px 24px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;align-items:start;gap:16px;}
+.order-num{font-size:18px;font-weight:600;color:var(--t1);}
+.order-meta{display:flex;gap:20px;flex-wrap:wrap;margin-top:6px;}
+.order-meta-item{font-size:11px;color:var(--t3);font-family:var(--mono);}
+.order-meta-item span{color:var(--t1);font-weight:500;}
+.order-status-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:99px;font-size:11px;font-weight:600;font-family:var(--mono);}
+.order-body{padding:0;}
+.order-section-hdr{padding:10px 24px;background:var(--surface-2);border-bottom:1px solid var(--border);font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between;}
+.order-line-grid{display:grid;grid-template-columns:48px 1fr 80px 80px 90px;align-items:center;gap:12px;padding:12px 24px;border-bottom:1px solid var(--border);}
+.order-line-grid:last-child{border-bottom:none;}
+.order-line-img{width:44px;height:44px;background:var(--surface-2);border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.order-line-img svg{width:40px;height:40px;}
+.order-line-name{font-size:12px;font-weight:500;color:var(--t1);line-height:1.3;}
+.order-line-sku{font-size:10px;font-family:var(--mono);color:var(--t3);margin-top:2px;}
+.order-line-val{font-size:12px;color:var(--t2);text-align:center;}
+.order-line-total{font-size:12px;font-weight:600;color:var(--t1);text-align:right;}
+.order-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--surface-2);}
+.order-footer-total{font-size:15px;font-weight:600;color:var(--t1);}
+.order-footer-actions{display:flex;gap:8px;}
+.order-action-btn{height:34px;padding:0 16px;border:1.5px solid var(--border);background:var(--surface);color:var(--t1);border-radius:6px;font-size:12px;font-weight:500;font-family:var(--sans);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;}
+.order-action-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-dim);}
+.order-action-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);}
+.order-action-btn.primary:hover{background:var(--primary-dk);}
+.order-shipping{padding:16px 24px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.order-ship-block{}
+.order-ship-label{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.order-ship-val{font-size:12px;color:var(--t1);line-height:1.6;}
+
+/* ── SEARCH FOCUS DROPDOWN (empty state) ───────────────────── */
+.sd-focus{display:grid;grid-template-columns:1fr 180px;gap:0;min-height:240px;}
+.sd-focus-left{padding:16px 18px;border-right:1px solid var(--border);}
+.sd-focus-right{padding:14px 12px;background:var(--surface-2);display:flex;flex-direction:column;gap:10px;}
+.sd-section-lbl{font-size:10px;font-family:var(--mono);color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.sd-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.sd-chip{padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:11px;color:var(--t2);cursor:pointer;background:var(--surface);font-family:var(--sans);transition:all .13s;white-space:nowrap;}
+.sd-chip:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-dim);}
+.sd-pop-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.sd-pop-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background .12s;}
+.sd-pop-item:hover{background:var(--surface-2);}
+.sd-pop-thumb{width:32px;height:32px;border-radius:6px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.sd-pop-thumb svg{width:28px;height:28px;}
+.sd-pop-info{min-width:0;}
+.sd-pop-name{font-size:11px;font-weight:500;color:var(--t1);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sd-pop-price{font-size:10px;font-family:var(--mono);color:var(--primary);}
+.sd-promo{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;cursor:pointer;transition:border-color .13s;}
+.sd-promo:hover{border-color:var(--primary);}
+.sd-promo svg{width:70px;height:70px;}
+.sd-promo-badge{font-size:9px;font-weight:700;font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase;background:var(--primary);color:#fff;padding:2px 7px;border-radius:999px;}
+.sd-promo-name{font-size:10px;font-weight:600;color:var(--t1);text-align:center;line-height:1.3;}
+.sd-promo-price{font-size:11px;font-family:var(--mono);color:var(--primary);font-weight:600;}
+
+/* ── SEARCH TYPING DROPDOWN (looking for) ───────────────────── */
+.sd-looking-hdr{padding:10px 16px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--t2);}
+.sd-looking-hdr strong{color:var(--t1);}
+.sd-look-list{max-height:280px;overflow-y:auto;}
+.sd-look-item{padding:9px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--t2);transition:background .1s;}
+.sd-look-item:hover{background:var(--surface-2);color:var(--t1);}
+.sd-look-ico{width:18px;font-size:13px;flex-shrink:0;text-align:center;color:var(--t3);}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────── */
+@media(max-width:900px){
+  .prod-layout,.tab-layout{grid-template-columns:1fr;}
+  .tab-sidebar{position:static;}
+}
+@media(max-width:640px){
+  .hdr{padding:0 16px;grid-template-columns:auto 1fr auto;gap:12px;}
+  .hero,.results,.tpanel{padding-left:16px;padding-right:16px;}
+  .ditem,.col-lbl-row{grid-template-columns:1fr 90px;}
+  .ditem>:nth-child(3),.ditem>:nth-child(4){display:none;}
+  .col-lbl-row>:nth-child(3),.col-lbl-row>:nth-child(4){display:none;}
+  .pcard-grid{grid-template-columns:1fr 1fr;}
+  .qa-2col{grid-template-columns:1fr;}
+  .content-toolbar{align-items:flex-start;flex-direction:column;}
+  .content-item{grid-template-columns:40px 1fr;gap:12px;}
+  .content-icon{width:40px;height:40px;}
+  .content-action{grid-column:2;justify-content:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<a href="#main" style="position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;">Skip to main content</a>
+
+<header class="hdr">
+  <div class="logo">Med<span>Search</span></div>
+
+  <div class="hdr-search-wrap">
+    <div class="s-wrap">
+      <div class="s-box">
+        <svg class="s-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="search" id="qi" placeholder="Search products, SKUs, SDS, invoices, recalls..." autocomplete="off" aria-label="Search medical supplies and documents" aria-autocomplete="list" aria-controls="ac-drop" role="combobox" aria-expanded="false"/>
+        <button class="s-btn" id="sbtn">Search</button>
+      </div>
+      <div id="ac-drop" class="ac-drop" role="listbox" aria-label="Autocomplete suggestions"></div>
+    </div>
+    <!-- Intent row: in-flow — expands the header height, pushes content down, no overlap -->
+    <div class="intent-row" aria-live="polite" aria-atomic="true">
+      <span class="intent-lbl">Detected:</span>
+      <span id="ibadge" class="badge" role="status" aria-label="Detected intent"></span>
+      <div class="conf-bar" aria-hidden="true"><div id="cfill" class="conf-fill"></div></div>
+      <span id="cpct" class="conf-pct" aria-hidden="true"></span>
+    </div>
+    <!-- Disambig: in-flow — appears below intent row when multiple intents score closely -->
+    <div id="disambig" class="disambig" role="region" aria-label="Multiple intents detected — choose category">
+      <div class="disambig-title">Multiple intents detected — select category:</div>
+      <div id="disambig-opts" class="disambig-opts"></div>
+    </div>
+  </div>
+
+  <div class="hdr-right">
+    <button class="hdr-icon" aria-label="Notifications">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+    <button class="hdr-icon" aria-label="User account">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="chips" role="group" aria-label="Quick search examples">
+      <button class="chip" onclick="setQ('nitrile exam gloves large')">Product Search</button>
+      <button class="chip" onclick="setQ('recall R-24-032')">Recall Notice</button>
+      <button class="chip" onclick="setQ('invoice INV-2024-0391')">Invoice</button>
+      <button class="chip" onclick="setQ('what is shelf life for catheters')">Q&amp;A</button>
+      <button class="chip" onclick="setQ('shopping list')">Shopping List</button>
+      <button class="chip" onclick="setQ('ORD-2024-8821')">Order Number</button>
+      <button class="chip" onclick="setQ('NON21420 vs MDS090735')">Item # vs Item #</button>
+    </div>
+  </section>
+
+  <section class="results" id="results" aria-label="Search results" aria-live="polite">
+    <div class="empty-state">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto;" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <div style="font-size:14px;color:var(--text-secondary);">Search products, documents, or ask a question above</div>
+      <div style="margin-top:6px;font-family:var(--mono);font-size:11px;color:var(--text-muted);">Intent auto-detected as you type</div>
+    </div>
+  </section>
+</main>
+
+<!-- VALIDATION TEST SUITE -->
+<section class="tpanel">
+  <div class="tpanel-hdr" onclick="toggleTests()" role="button" tabindex="0" aria-expanded="false" aria-controls="tgrid" onkeydown="if(event.key==='Enter'||event.key===' ')toggleTests()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 12h6m-3-3v6"/><circle cx="12" cy="12" r="10"/></svg>
+    Validation Test Suite — 25 Queries
+    <svg id="tchev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition:transform .2s" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+  <div id="tgrid" class="hidden" role="list" aria-label="Test query examples"></div>
+</section>
+
+<script>
+// ============================================================
+// INTENT DETECTION ENGINE
+// ============================================================
+
+const RULES = {
+  PRODUCT: {
+    patterns: [
+      { re: /^\d{4,10}$/, w: 1.0 },
+      { re: /^[A-Z]{2,5}\d{4,}/i, w: 0.95 },
+      { re: /\b(sku|item\s?#|part\s?#|catalog\s?#|lot\s?#|batch)\b/i, w: 0.85 }
+    ],
+    kw: [
+      ['nitrile gloves',0.85],['exam gloves',0.85],['gloves',0.70],['n95',0.75],['kn95',0.75],
+      ['mask',0.60],['wheelchair',0.70],['walker',0.70],['crutch',0.65],
+      ['catheter',0.72],['foley',0.75],['tubing',0.60],
+      ['alcohol prep',0.82],['prep pad',0.78],['formalin',0.80],
+      ['chg wipes',0.82],['chg',0.68],['bandage',0.65],['syringe',0.72],
+      ['remedy',0.75],['brief',0.82],['clinical supply',0.75],
+      ['find item',0.90],['parts finder',0.92],['parts list',0.87]
+    ]
+  },
+  DOCUMENT: {
+    subs: {
+      'Compliance & Regulatory': {
+        cls:'cc',
+        kw:[['sds',1.0],['msds',1.0],['safety data sheet',1.0],['coa',0.95],
+            ['certificate of analysis',1.0],['ifu',0.95],['instructions for use',1.0],
+            ['mifu',0.95],['pfas',0.90],['w9',0.90],['fda',0.80],['iso',0.75],
+            ['certification',0.75],['expiration',0.72],['shelf life',0.78]]
+      },
+      'Recall & Safety Alerts': {
+        cls:'cr',
+        kw:[['recall',1.0],['medical device recall',1.0],['recall notice',1.0]],
+        re:[/\bR-\d{2}-\d{3}\b/]
+      },
+      'Orders, Billing & Transactions': {
+        cls:'cb',
+        kw:[['invoice',0.95],['payment',0.85],['pay bill',0.90],['billing',0.88],
+            ['packing slip',0.90],['purchase order',0.90],['po number',0.90],
+            ['statement',0.80],['shipping',0.75],['tracking',0.80],['return',0.70]],
+        re:[/\b(INV|PO|ORD)-[\d-]+\b/i]
+      },
+      'Customer Account & Admin': {
+        cls:'ca',
+        kw:[['add user',0.95],['create user',0.95],['account settings',0.90],
+            ['login',0.85],['employment verification',0.95],['license',0.75],
+            ['authorization',0.82],['approval',0.75],['user dashboard',0.88]]
+      },
+      'Locations & Org Info': {
+        cls:'ca',
+        kw:[['locations',0.88],['contact us',0.85],['phone number',0.82],
+            ['fax',0.80],['careers',0.87],['employment',0.75],['departments',0.78]]
+      },
+      'Clinical Conditions': {
+        cls:'cl',
+        kw:[['diabetes',0.90],['cancer',0.85],['epilepsy',0.90],['bipolar',0.90],
+            ['schizophrenia',0.90],['tay-sachs',0.95],['marfan',0.95],
+            ['dementia',0.90],['hypertension',0.85]]
+      },
+      'Clinical Research': {
+        cls:'cl',
+        kw:[['systematic review',0.95],['journal',0.80],['citation',0.85],['doi',0.90]],
+        re:[/\bboolean\s+(and|or)\b/i]
+      },
+      'Clinical Procedures': {
+        cls:'cl',
+        kw:[['wound care',0.90],['pressure injury',0.90],['central line',0.90],
+            ['catheter care',0.90],['infection prevention',0.88],
+            ['patient education',0.85],['surgery',0.75],['rehabilitation',0.80]]
+      },
+      'Equipment & Devices': {
+        cls:'cl',
+        kw:[['hospital bed',0.85],['pump',0.72],['monitor',0.72],['surgical instrument',0.90],['lift',0.75]]
+      },
+      'Education & Training': {
+        cls:'ca',
+        kw:[['ceu',0.95],['continuing education',0.95],['training video',0.95],
+            ['reference guide',0.88],['manual',0.75],['user manual',0.88]]
+      },
+      'Reports & Analytics': {
+        cls:'cb',
+        kw:[['usage report',0.95],['insights',0.82],['analytics',0.88],['spending report',0.90],['reports',0.78]]
+      },
+      'Grants & Programs': {
+        cls:'ca',
+        kw:[['grant',0.90],['insurance',0.80],['medicare',0.90],['healthcare program',0.92]]
+      }
+    }
+  },
+  QA: {
+    patterns:[{ re:/^(why|how|what|when|who|where|can|does|is|are|should|which|explain|tell me)\b/i, w:0.75 }],
+    kw:[['difference between',0.72],['compare',0.68],['help me understand',0.82]]
+  }
+};
+
+function norm(q){ return q.trim().toLowerCase(); }
+
+function kwScore(q, kwArr){
+  const n = norm(q); let best=0, hits=0;
+  for(const [t,w] of kwArr){ if(n.includes(t)){ if(w>best)best=w; hits++; } }
+  if(hits>1) best = Math.min(1.0, best + (hits-1)*0.05);
+  return best;
+}
+
+function detectIntent(raw){
+  // ── Special intents checked first ──────────────────────────
+  const special = typeof detectSpecialIntent === 'function' ? detectSpecialIntent(raw) : null;
+  if (special) return special;
+
+  const q = raw.trim();
+  if(!q) return {intent:null,conf:0,sub:null,ambig:false,all:{},docSubs:{}};
+
+  // Product
+  let pScore=0;
+  for(const p of RULES.PRODUCT.patterns){ if(p.re.test(q)) pScore=Math.max(pScore,p.w); }
+  pScore = Math.max(pScore, kwScore(q, RULES.PRODUCT.kw));
+  pScore = Math.max(pScore, productCatalogScore(q));
+
+  // Document — score each subcategory
+  let dSubs={}, bestSub=null, maxD=0;
+  for(const [name,cfg] of Object.entries(RULES.DOCUMENT.subs)){
+    let s = kwScore(q, cfg.kw);
+    if(cfg.re) for(const r of cfg.re){ if(r.test(q)) s=Math.max(s,0.96); }
+    dSubs[name]=s;
+    if(s>maxD){ maxD=s; bestSub=name; }
+  }
+
+  // QA
+  let qaScore=0;
+  for(const p of RULES.QA.patterns){ if(p.re.test(q)) qaScore=Math.max(qaScore,p.w); }
+  qaScore=Math.max(qaScore, kwScore(q, RULES.QA.kw));
+  if(/^(why|how|what|when|who|where|can|does|is|are|should|which|explain|tell me)\b/i.test(q)) qaScore=Math.max(qaScore,0.98);
+  if(maxD<0.3 && pScore<0.3 && q.length>5) qaScore=Math.max(qaScore,0.42);
+
+  const all={PRODUCT:pScore,DOCUMENT:maxD,QA:qaScore};
+  const sorted=Object.entries(all).sort((a,b)=>b[1]-a[1]);
+  const [topIntent,topScore]=[sorted[0][0],sorted[0][1]];
+  const secondScore=sorted[1]?sorted[1][1]:0;
+  const ambig=(topScore<0.7)||(topScore-secondScore<0.15&&topScore>0.3&&secondScore>0.3);
+
+  return {
+    intent:topIntent,
+    conf:parseFloat(topScore.toFixed(2)),
+    sub:topIntent==='DOCUMENT'?bestSub:null,
+    ambig,
+    all,
+    dSubs
+  };
+}
+
+// ============================================================
+// MOCK DATA
+// ============================================================
+
+const PRODUCTS=[
+  {name:'Nitrile Exam Gloves, Powder-Free, Medium',sku:'NON21420',brand:'Clinical Supply Co.',av:'in',price:'$12.49',
+   cmir:'FGH1230001',colors:['#1a1a1a','#1a3a6a','#7ec8c8','#aaaaaa'],extra:5,units:['1/BX','10/CS']},
+  {name:'Nitrile Exam Gloves, Powder-Free, Large',sku:'NON21421',brand:'Clinical Supply Co.',av:'in',price:'$12.49',
+   cmir:'FGH1230002',colors:['#1a1a1a','#1a3a6a','#7ec8c8'],extra:3,units:['1/BX','10/CS']},
+  {name:'Nitrile Exam Gloves, Powder-Free, Small',sku:'NON21419',brand:'Clinical Supply Co.',av:'low',price:'$12.49',
+   cmir:'FGH1230003',colors:['#1a1a1a','#1a3a6a'],extra:2,units:['1/BX','10/CS']},
+  {name:'Ultra Briefs, Medium',sku:'MDS090735',brand:'Care Essentials',av:'in',price:'$24.99',
+   cmir:'FGH3456789',colors:['#e8e0d0','#c8b8a0'],extra:2,units:['1/EA','2/CS']},
+  {name:'Ultra Briefs, Large',sku:'MDS090736',brand:'Care Essentials',av:'in',price:'$24.99',
+   cmir:'FGH3456790',colors:['#e8e0d0','#c8b8a0'],extra:1,units:['1/EA','2/CS']},
+  {name:'Remedy Calazime Skin Protectant Paste, 4oz',sku:'MSC092504',brand:'Remedy',av:'low',price:'$8.75',
+   cmir:'FGH7890001',colors:['#ffffff'],extra:0,units:['1/EA','12/CS']},
+  {name:'Alcohol Prep Pads, Sterile, Medium',sku:'232209',brand:'Clinical Supply Co.',av:'in',price:'$4.29',
+   cmir:'FGH2320900',colors:['#f5f5f5'],extra:0,units:['1/BX','20/CS']},
+  {name:'CHG 2% Wipes, 6"×6.75"',sku:'MDS096220',brand:'Clinical Supply Co.',av:'out',price:'$18.99',
+   cmir:'FGH9622001',colors:['#f5f5f5'],extra:0,units:['1/PK','10/CS']},
+  {name:'Foley Catheter, 2-Way, 16Fr, 30cc',sku:'243136',brand:'Clinical Supply Co.',av:'in',price:'$5.49',
+   cmir:'FGH2431360',colors:['#c8e0f0','#f0e0c8','#d0f0d0'],extra:4,units:['1/EA','10/CS']},
+  {name:'N95 Respirator, NIOSH-Approved',sku:'NON27501',brand:'Clinical Supply Co.',av:'low',price:'$3.15',
+   cmir:'FGH2750100',colors:['#f0f0f0','#1a1a1a'],extra:1,units:['1/EA','20/CS']}
+];
+
+const DOCS=[
+  {title:'Formalin 10% Buffered — Safety Data Sheet',sub:'Compliance & Regulatory',cls:'cc',type:'SDS',upd:'2024-03-12',stat:'current',scls:'s-cur'},
+  {title:'Nitrile Gloves COA — Lot 2024-A',sub:'Compliance & Regulatory',cls:'cc',type:'COA',upd:'2024-11-08',stat:'current',scls:'s-cur'},
+  {title:'Foley Catheter Instructions for Use',sub:'Compliance & Regulatory',cls:'cc',type:'IFU',upd:'2023-07-01',stat:'review',scls:'s-rev'},
+  {title:'CHG Wipes PFAS Disclosure Statement',sub:'Compliance & Regulatory',cls:'cc',type:'Statement',upd:'2023-11-30',stat:'review',scls:'s-rev'},
+  {title:'Recall Notice R-24-032 — Infusion Pump 3X',sub:'Recall & Safety Alerts',cls:'cr',type:'Recall',upd:'2024-09-22',stat:'active',scls:'s-exp'},
+  {title:'Recall Notice R-23-011 — IV Set Lot B',sub:'Recall & Safety Alerts',cls:'cr',type:'Recall',upd:'2023-04-10',stat:'closed',scls:'s-cur'},
+  {title:'Invoice INV-2024-0391',sub:'Orders, Billing & Transactions',cls:'cb',type:'Invoice',upd:'2024-12-01',stat:'open',scls:'s-rev'},
+  {title:'Packing Slip PO-2024-8821',sub:'Orders, Billing & Transactions',cls:'cb',type:'Packing Slip',upd:'2024-11-28',stat:'fulfilled',scls:'s-cur'},
+  {title:'Q3 2024 Usage Report — Gloves Category',sub:'Reports & Analytics',cls:'cb',type:'Report',upd:'2024-10-15',stat:'current',scls:'s-cur'},
+  {title:'Wound Care & Pressure Injury Protocol',sub:'Clinical Procedures',cls:'cl',type:'Protocol',upd:'2024-01-20',stat:'current',scls:'s-cur'},
+  {title:'Catheter Care CEU Module 3',sub:'Education & Training',cls:'ca',type:'Training',upd:'2024-06-05',stat:'current',scls:'s-cur'},
+  {title:'Medicare Reimbursement Program Guide',sub:'Grants & Programs',cls:'ca',type:'Guide',upd:'2024-08-14',stat:'current',scls:'s-cur'}
+];
+
+const QA_KB={
+  shelf_life:`Catheter shelf life varies by manufacturer and sterilization method. Foley catheters (silicone) typically carry a 5-year shelf life from date of manufacture. Latex catheters: 2–3 years. Always verify against the individual product label and IFU — those are the authoritative references. Store in a cool, dry area away from UV exposure and moisture.`,
+  compare:`Nitrile exam gloves offer superior chemical resistance and are latex-free, making them the standard for high-risk clinical environments. Latex offers better tactile sensitivity but poses allergy risk. Vinyl is the lowest cost option with reduced barrier integrity. For AQL-rated comparison: surgical grade (AQL ≤1.0) vs exam grade (AQL ≤1.5). Thickness range: nitrile 4–6 mil, latex 4–5 mil, vinyl 3–4 mil.`,
+  default:`Based on your query, the knowledge base suggests refining with specific document type keywords (SDS, COA, IFU, recall) for compliance documents, or SKU/product name for catalog lookups. For account or billing queries, include identifiers such as invoice numbers (INV-XXXX) or PO numbers.`
+};
+
+// ============================================================
+// AUTOCOMPLETE DATA
+// ============================================================
+
+const SUGGEST=[
+  {t:'232209',h:'Exact SKU — item page or compare',i:'📦'},
+  {t:'NON21420 vs MDS090735',h:'SKU vs SKU — direct comparison',i:'⚖️'},
+  {t:'NON21420',h:'Exact SKU — item page or compare',i:'📦'},
+  {t:'shopping list',h:'Feature → Shopping List',i:'🛒'},
+  {t:'order dashboard',h:'Feature → Order Dashboard',i:'📊'},
+  {t:'formulary',h:'Feature → Approved Formulary',i:'📋'},
+  {t:'my orders',h:'Feature → Order History',i:'📊'},
+  {t:'ORD-2024-8821',h:'Order lookup → Order details',i:'📦'},
+  {t:'ORD-2024-9012',h:'Order lookup → Order details',i:'📦'},
+  {t:'MDS090735 briefs',h:'Product — SKU + item type',i:'📦'},
+  {t:'nitrile exam gloves large',h:'Product — item name search',i:'📦'},
+  {t:'NON21420',h:'Product — gloves SKU',i:'📦'},
+  {t:'SDS formalin',h:'Document — Safety Data Sheet',i:'📄'},
+  {t:'MSDS CHG wipes',h:'Document — MSDS trigger',i:'📄'},
+  {t:'COA lot 2024-A',h:'Document — Certificate of Analysis',i:'📄'},
+  {t:'IFU foley catheter',h:'Document — Instructions for Use',i:'📄'},
+  {t:'PFAS statement',h:'Document — Compliance',i:'📄'},
+  {t:'recall R-24-032',h:'Document — Recall by ID',i:'⚠️'},
+  {t:'medical device recall infusion pump',h:'Document — Recall alert',i:'⚠️'},
+  {t:'invoice INV-2024-0391',h:'Document — Billing',i:'🧾'},
+  {t:'packing slip PO-2024-8821',h:'Document — Order tracking',i:'🧾'},
+  {t:'Q3 usage report gloves',h:'Document — Analytics',i:'📊'},
+  {t:'wound care pressure injury protocol',h:'Document — Clinical Procedures',i:'📋'},
+  {t:'catheter care CEU continuing education',h:'Document — Training',i:'🎓'},
+  {t:'add user to account',h:'Document — Account Admin',i:'👤'},
+  {t:'office locations phone number',h:'Document — Locations',i:'📍'},
+  {t:'Medicare reimbursement program',h:'Document — Grants',i:'📋'},
+  {t:'what is shelf life for catheters',h:'Q&A — knowledge query',i:'💬'},
+  {t:'how do I compare nitrile vs latex gloves',h:'Q&A — comparison',i:'💬'},
+  {t:'why are CHG wipes used before surgery',h:'Q&A — clinical knowledge',i:'💬'}
+];
+
+// ============================================================
+// TEST QUERIES
+// ============================================================
+
+const TESTS=[
+  {q:'232209',ex:'EXACT SKU → Item page or Comparables',n:'Exact SKU match → ambiguity panel'},
+  {q:'NON21420 vs MDS090735',ex:'SKU vs SKU → Comparison page',n:'Two SKUs separated by "vs"'},
+  {q:'shopping list',ex:'FEATURE → Shopping List page',n:'Feature name navigation'},
+  {q:'order dashboard',ex:'FEATURE → Order Dashboard page',n:'Feature name navigation'},
+  {q:'my orders',ex:'FEATURE → Order Dashboard',n:'Feature alias'},
+  {q:'formulary',ex:'FEATURE → Formulary page',n:'Feature name navigation'},
+  {q:'ORD-2024-8821',ex:'ORDER → Order detail page',n:'Order number lookup'},
+  {q:'order #2024-9012',ex:'ORDER → Order detail page',n:'Order with hash prefix'},
+  {q:'MDS090735',ex:'PRODUCT',n:'Alphanumeric SKU'},
+  {q:'NON21420',ex:'PRODUCT',n:'Alphanumeric SKU'},
+  {q:'nitrile exam gloves large',ex:'PRODUCT',n:'Product name + size modifier'},
+  {q:'briefs medium',ex:'PRODUCT',n:'Product name + size'},
+  {q:'find item # alcohol prep pads',ex:'PRODUCT',n:'Search modifier trigger'},
+  {q:'SDS formalin',ex:'DOCUMENT / Compliance',n:'SDS keyword'},
+  {q:'MSDS CHG wipes',ex:'DOCUMENT / Compliance',n:'MSDS keyword'},
+  {q:'certificate of analysis lot 2024-A',ex:'DOCUMENT / Compliance',n:'COA full phrase'},
+  {q:'instructions for use foley catheter',ex:'DOCUMENT / Compliance',n:'IFU trigger'},
+  {q:'PFAS disclosure statement',ex:'DOCUMENT / Compliance',n:'PFAS keyword'},
+  {q:'recall R-24-032',ex:'DOCUMENT / Recall',n:'Recall ID regex pattern'},
+  {q:'medical device recall infusion pump',ex:'DOCUMENT / Recall',n:'Recall keyword cluster'},
+  {q:'invoice INV-2024-0391',ex:'DOCUMENT / Billing',n:'Invoice ID regex + keyword'},
+  {q:'packing slip order tracking',ex:'DOCUMENT / Billing',n:'Billing keyword cluster'},
+  {q:'add user to purchasing account',ex:'DOCUMENT / Account',n:'Admin trigger'},
+  {q:'employment verification letter',ex:'DOCUMENT / Account',n:'Account document'},
+  {q:'office locations and phone numbers',ex:'DOCUMENT / Locations',n:'Location keyword cluster'},
+  {q:'wound care pressure injury protocol',ex:'DOCUMENT / Clinical',n:'Clinical procedure keywords'},
+  {q:'catheter care CEU continuing education',ex:'DOCUMENT / Training',n:'CEU trigger'},
+  {q:'Q3 usage report spending insights',ex:'DOCUMENT / Reports',n:'Analytics keywords'},
+  {q:'Medicare reimbursement program grant',ex:'DOCUMENT / Grants',n:'Program/grant keywords'},
+  {q:'what is the shelf life for catheters',ex:'Q&A',n:'Question pattern (what)'},
+  {q:'how do I compare nitrile vs latex gloves',ex:'Q&A',n:'How-question + compare'},
+  {q:'why are CHG wipes used before surgery',ex:'Q&A',n:'Why-question pattern'}
+];
+
+// ============================================================
+// UI CONTROLLER
+// ============================================================
+
+const qi = document.getElementById('qi');
+const sbtn = document.getElementById('sbtn');
+const ibadge = document.getElementById('ibadge');
+const cfill = document.getElementById('cfill');
+const cpct = document.getElementById('cpct');
+const acdrop = document.getElementById('ac-drop');
+const disambigEl = document.getElementById('disambig');
+const disambigOpts = document.getElementById('disambig-opts');
+const resultsEl = document.getElementById('results');
+
+const INTENT_STYLE={
+  PRODUCT:{cls:'product',fill:'#00C9A7',lbl:'Product Search'},
+  DOCUMENT:{cls:'document',fill:'#4A8FFF',lbl:'Document Search'},
+  QA:{cls:'qa',fill:'#9B6DFF',lbl:'Q&A Mode'},
+  // New intent types
+  EXACT_SKU:   {cls:'product',  fill:'#00875a', lbl:'Item Found'},
+  SKU_COMPARE: {cls:'product',  fill:'#0052cc', lbl:'Comparing Products'},
+  FEATURE_NAV: {cls:'document', fill:'#403294', lbl:'Feature Navigation'},
+  ORDER_LOOKUP:{cls:'document', fill:'#7a4100', lbl:'Order Found'},
+};
+
+function ea(s){ return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+function hl(text,q){
+  const i=text.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0)return text;
+  return text.slice(0,i)+'<strong style="color:var(--teal)">'+text.slice(i,i+q.length)+'</strong>'+text.slice(i+q.length);
+}
+
+function updateBadge(r){
+  const intentRow=document.querySelector('.intent-row');
+  const{intent,conf,sub,ambig}=r;
+
+  // ── New intent types ────────────────────────────────────────
+  if(intent==='EXACT_SKU'){
+    ibadge.className='badge product'; ibadge.textContent=`Item Found · ${r.product?.sku||''}`;
+    cfill.style.width='100%'; cfill.style.background='#00875a'; cpct.textContent='100%';
+    if(intentRow) intentRow.classList.add('has-intent');
+    if(r.product) showExactSkuDisambig(r.product);
+    return;
+  }
+  if(intent==='SKU_COMPARE'){
+    ibadge.className='badge product'; ibadge.textContent=`Comparing: ${(r.skus||[]).join(' vs ')}`;
+    cfill.style.width='100%'; cfill.style.background='#0052cc'; cpct.textContent='100%';
+    if(intentRow) intentRow.classList.add('has-intent');
+    disambigEl.classList.remove('open'); return;
+  }
+  if(intent==='FEATURE_NAV'){
+    ibadge.className='badge document'; ibadge.textContent=`Navigate to: ${r.feature?.label||''}`;
+    cfill.style.width='100%'; cfill.style.background='#403294'; cpct.textContent='100%';
+    if(intentRow) intentRow.classList.add('has-intent');
+    disambigEl.classList.remove('open'); return;
+  }
+  if(intent==='ORDER_LOOKUP'){
+    ibadge.className='badge document'; ibadge.textContent=`Order: ${r.orderNum||''}`;
+    cfill.style.width='100%'; cfill.style.background='#7a4100'; cpct.textContent='100%';
+    if(intentRow) intentRow.classList.add('has-intent');
+    disambigEl.classList.remove('open'); return;
+  }
+  // ── Standard intents ────────────────────────────────────────
+  if(!intent||conf<0.18){
+    ibadge.className='badge'; ibadge.textContent='';
+    cfill.style.width='0%'; cpct.textContent='';
+    if(intentRow) intentRow.classList.remove('has-intent');
+    return;
+  }
+  const s=INTENT_STYLE[intent]||{};
+  const slbl=sub?` → ${sub}`:'';
+  ibadge.className=`badge ${ambig?'ambiguous':s.cls}`;
+  ibadge.textContent=`${s.lbl}${slbl}`;
+  ibadge.setAttribute('aria-label',`Detected: ${s.lbl}${slbl}, ${Math.round(conf*100)}% confidence`);
+  cfill.style.width=Math.round(conf*100)+'%';
+  cfill.style.background=ambig?'#ff8b00':'#0052cc';
+  cpct.textContent=Math.round(conf*100)+'%';
+  if(intentRow) intentRow.classList.add('has-intent');
+}
+
+function hideIntent(){
+  const intentRow=document.querySelector('.intent-row');
+  ibadge.className='badge'; ibadge.textContent='';
+  cfill.style.width='0%'; cpct.textContent='';
+  if(intentRow) intentRow.classList.remove('has-intent');
+}
+
+function showDisambig(r){
+  const opts=[];
+  if(r.all.PRODUCT>0.25) opts.push({lbl:'Product Search',intent:'PRODUCT',sub:'',score:r.all.PRODUCT});
+  if(r.all.DOCUMENT>0.25){
+    const tops=Object.entries(r.dSubs).filter(([,v])=>v>0.25).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    tops.forEach(([n,v])=>opts.push({lbl:`Document: ${n}`,intent:'DOCUMENT',sub:n,score:v}));
+  }
+  if(r.all.QA>0.25) opts.push({lbl:'Q&A / General',intent:'QA',sub:'',score:r.all.QA});
+  if(opts.length<2){disambigEl.classList.remove('open');return;}
+  disambigEl.classList.add('open');
+  disambigOpts.innerHTML=opts.map(o=>`<button class="disambig-btn" onclick="runSearch('${ea(qi.value)}','${o.intent}','${ea(o.sub)}')">${o.lbl} <span style="font-family:var(--mono);font-size:10px;color:var(--text-muted)">${Math.round(o.score*100)}%</span></button>`).join('');
+}
+
+// ── FOCUS DROPDOWN DATA ───────────────────────────────────────
+const YOU_MAY_LIKE=[
+  'Weight Management','Pain Relief','Wound Care','PPE & Gloves',
+  'Catheters','Skin Protection','Infection Control','Respiratory',
+  'Incontinence','First Aid','Sterile Supplies','Compression Therapy',
+  'Diabetes Care','Post-Surgery','IV & Infusion'
+];
+const POPULAR_PRODUCTS=[
+  {name:'Nitrile Exam Gloves, Medium',price:'$12.49',img:'gloves'},
+  {name:'Foley Catheter 16Fr',price:'$5.49',img:'catheter'},
+  {name:'Alcohol Prep Pads',price:'$4.29',img:'alcohol'},
+  {name:'CHG 2% Wipes',price:'$18.99',img:'wipes'}
+];
+const PROMO_PRODUCT={name:'N95 Respirator NIOSH-Approved',price:'$3.15',img:'respirator',badge:'Featured'};
+
+function showFocusDropdown(){
+  const chipHTML=YOU_MAY_LIKE.map(c=>`<span class="sd-chip" onclick="setQ('${c}')">${c}</span>`).join('');
+  const popHTML=POPULAR_PRODUCTS.map(p=>`
+    <div class="sd-pop-item" onclick="setQ('${p.name}')">
+      <div class="sd-pop-thumb">${prodImg(p.name)}</div>
+      <div class="sd-pop-info">
+        <div class="sd-pop-name">${p.name}</div>
+        <div class="sd-pop-price">${p.price}</div>
+      </div>
+    </div>`).join('');
+  const promoHTML=`
+    <div class="sd-promo" onclick="setQ('${PROMO_PRODUCT.name}')">
+      <span class="sd-promo-badge">${PROMO_PRODUCT.badge}</span>
+      ${prodImg(PROMO_PRODUCT.name)}
+      <div class="sd-promo-name">${PROMO_PRODUCT.name}</div>
+      <div class="sd-promo-price">${PROMO_PRODUCT.price}</div>
+    </div>`;
+  acdrop.innerHTML=`
+    <div class="sd-focus">
+      <div class="sd-focus-left">
+        <div class="sd-section-lbl">You may like</div>
+        <div class="sd-chips">${chipHTML}</div>
+        <div class="sd-section-lbl">Most Popular</div>
+        <div class="sd-pop-row">${popHTML}</div>
+      </div>
+      <div class="sd-focus-right">
+        <div class="sd-section-lbl">Promoted</div>
+        ${promoHTML}
+      </div>
+    </div>`;
+  acdrop.classList.add('open');
+  qi.setAttribute('aria-expanded','true');
+}
+
+function updateAC(q){
+  const n=q.toLowerCase();
+  // Build "Looking For" suggestions from SUGGEST + PRODUCTS catalog
+  const fromSuggest=SUGGEST.filter(s=>s.t.toLowerCase().includes(n)||s.h.toLowerCase().includes(n)).slice(0,5);
+  const fromCatalog=PRODUCTS.filter(p=>p.name.toLowerCase().includes(n)||p.sku.toLowerCase().includes(n))
+    .slice(0,4).map(p=>({t:p.name,h:`Item # ${p.sku}`,i:'📦'}));
+  // Deduplicate
+  const seen=new Set(fromSuggest.map(s=>s.t.toLowerCase()));
+  const combined=[...fromSuggest,...fromCatalog.filter(c=>!seen.has(c.t.toLowerCase()))].slice(0,8);
+  if(!combined.length){acdrop.classList.remove('open');qi.setAttribute('aria-expanded','false');return;}
+  const listHTML=combined.map(s=>`
+    <div class="sd-look-item" role="option" tabindex="0"
+      onclick="pickAC('${ea(s.t)}')"
+      onkeydown="if(event.key==='Enter')pickAC('${ea(s.t)}')"
+      aria-label="${s.t} — ${s.h}">
+      <span class="sd-look-ico" aria-hidden="true">${s.i}</span>
+      <span>
+        <span>${hl(s.t,q)}</span>
+        <br><span style="font-size:11px;color:var(--text-muted)">${s.h}</span>
+      </span>
+    </div>`).join('');
+  acdrop.innerHTML=`
+    <div class="sd-looking-hdr">Looking for <strong>${q}</strong></div>
+    <div class="sd-look-list" role="listbox">${listHTML}</div>`;
+  acdrop.classList.add('open');
+  qi.setAttribute('aria-expanded','true');
+}
+
+function pickAC(t){
+  qi.value=t; acdrop.classList.remove('open'); qi.setAttribute('aria-expanded','false');
+  qi.dispatchEvent(new Event('input')); runSearch(t);
+}
+
+qi.addEventListener('focus',function(){
+  if(!this.value.trim()) showFocusDropdown();
+});
+
+qi.addEventListener('input',function(){
+  const q=this.value;
+  if(!q.trim()){
+    hideIntent();
+    showFocusDropdown();
+    disambigEl.classList.remove('open'); return;
+  }
+  const r=detectIntent(q);
+  updateBadge(r); updateAC(q);
+  if(r.ambig&&r.conf>0.28) showDisambig(r);
+  else disambigEl.classList.remove('open');
+});
+
+qi.addEventListener('keydown',function(e){
+  if(e.key==='Enter'){runSearch(this.value);}
+  if(e.key==='Escape'){acdrop.classList.remove('open');this.setAttribute('aria-expanded','false');}
+});
+
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.s-wrap')){ acdrop.classList.remove('open');qi.setAttribute('aria-expanded','false'); }
+});
+
+sbtn.addEventListener('click',()=>runSearch(qi.value));
+
+function setQ(q){ qi.value=q; qi.dispatchEvent(new Event('input')); runSearch(q); }
+
+async function runSearch(raw,forceIntent=null,forceSub=null){
+  const q=raw.trim(); if(!q)return;
+  acdrop.classList.remove('open'); qi.setAttribute('aria-expanded','false');
+  const r=detectIntent(q);
+  const intent=forceIntent||r.intent;
+  const sub=forceSub!==null?forceSub:r.sub;
+  disambigEl.classList.remove('open');
+  // ── New intent routes ──────────────────────────────────────
+  if(intent==='EXACT_SKU')       renderItemPage(r.product?.sku||q);
+  else if(intent==='SKU_COMPARE')     renderSkuCompare(r,q);
+  else if(intent==='FEATURE_NAV')     renderFeatureRedirect(r.feature,q);
+  else if(intent==='ORDER_LOOKUP')    renderOrderDetails(r.orderNum,q);
+  // ── Original routes ────────────────────────────────────────
+  else if(intent==='PRODUCT') renderProducts(q,r);
+  else if(intent==='DOCUMENT') renderDocs(q,r,sub);
+  else await renderQA(q,r);
+  resultsEl.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ============================================================
+// RENDERERS
+// ============================================================
+
+function availLabel(av){ return av==='in'?'In Stock':av==='low'?'Low Stock':'Out of Stock'; }
+
+function availStyle(av){
+  const map={
+    in:{lbl:'In Stock',dot:'#00875a',bg:'var(--success-bg)'},
+    low:{lbl:'Low Stock',dot:'#ff8b00',bg:'var(--warning-bg)'},
+    out:{lbl:'Out of Stock',dot:'#bf2600',bg:'var(--danger-bg)'}
+  };
+  return map[av]||map.out;
+}
+
+function cardIcon(name){
+  const n=name.toLowerCase();
+  if(n.includes('glove')) return 'G';
+  if(n.includes('mask')||n.includes('respirator')||n.includes('n95')) return 'N95';
+  if(n.includes('brief')) return 'BR';
+  if(n.includes('paste')||n.includes('remedy')) return 'RX';
+  if(n.includes('alcohol')||n.includes('prep')) return 'AP';
+  if(n.includes('wipe')||n.includes('chg')) return 'CHG';
+  if(n.includes('catheter')||n.includes('foley')) return 'FC';
+  return 'MD';
+}
+
+// ── PRODUCT SVG IMAGES ────────────────────────────────────────
+
+const PROD_IMG={
+  gloves:`<svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#EBF5FB" rx="12"/>
+    <path d="M35 72 C35 72 30 70 28 60 L26 40 C26 37 28 35 31 35 C34 35 36 37 36 40 L36 50 L38 50 L38 30 C38 27 40 25 43 25 C46 25 48 27 48 30 L48 50 L50 50 L50 32 C50 29 52 27 55 27 C58 27 60 29 60 32 L60 50 L62 50 L62 35 C62 32 64 30 67 30 C70 30 72 32 72 35 L72 58 C72 68 64 78 55 78 L45 78 C40 78 35 72 35 72Z" fill="#2980B9" opacity="0.9"/>
+    <path d="M36 50 L36 40" stroke="#1A5276" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>`,
+  mask:`<svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#EAF2FF" rx="12"/>
+    <rect x="18" y="32" width="64" height="36" rx="18" fill="#2980B9" opacity="0.85"/>
+    <path d="M18 50 Q50 62 82 50" stroke="#1A5276" stroke-width="1.5"/>
+    <path d="M18 44 Q50 56 82 44" stroke="#1A5276" stroke-width="1" opacity="0.5"/>
+    <line x1="10" y1="40" x2="18" y2="45" stroke="#2980B9" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="10" y1="55" x2="18" y2="52" stroke="#2980B9" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="90" y1="40" x2="82" y2="45" stroke="#2980B9" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="90" y1="55" x2="82" y2="52" stroke="#2980B9" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>`,
+  briefs:`<svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#F0F8FF" rx="12"/>
+    <path d="M20 30 L80 30 L75 70 Q50 80 25 70 Z" fill="#5BA4CF" opacity="0.8"/>
+    <path d="M20 30 Q35 55 50 50 Q65 55 80 30" fill="#2980B9" opacity="0.9"/>
+    <path d="M50 50 L50 78" stroke="#1A5276" stroke-width="1.5"/>
+  </svg>`,
+  paste:`<svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#FFF8F0" rx="12"/>
+    <rect x="35" y="38" width="30" height="38" rx="4" fill="#E67E22" opacity="0.85"/>
+    <rect x="38" y="22" width="24" height="18" rx="2" fill="#D35400"/>
+    <path d="M38 36 L62 36" stroke="#C0392B" stroke-width="1.5"/>
+    <rect x="44" y="16" width="12" height="8" rx="2" fill="#E67E22"/>
+    <rect x="40" y="50" width="20" height="3" rx="1" fill="white" opacity="0.4"/>
+    <rect x="40" y="57" width="14" height="3" rx="1" fill="white" opacity="0.4"/>
+  </svg>`,
+  alcohol:`<svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#F0FFF4" rx="12"/>
+    <rect x="28" y="20" width="44" height="60" rx="6" fill="#27AE60" opacity="0.85"/>
+    <rect x="35" y="16" width="30" height="10" rx="3" fill="#1E8449"/>
+    <rect x="32" y="34" width="36" height="2" rx="1" fill="white" opacity="0.3"/>
+    <rect x="32" y="42" width="36" height="14" rx="2" fill="white" opacity="0.15"/>
+    <text x="50" y="53" text-anchor="middle" font-size="8" fill="white" font-family="sans-serif" font-weight="bold">PREP</text>
+    <rect x="32" y="62" width="20" height="2" rx="1" fill="white" opacity="0.3"/>
+  </svg>`,
+  wipes:`<svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#EFF9FF" rx="12"/>
+    <rect x="20" y="25" width="60" height="50" rx="8" fill="#2E86C1" opacity="0.85"/>
+    <path d="M30 45 Q50 38 70 45" stroke="white" stroke-width="2" opacity="0.5" fill="none"/>
+    <path d="M30 55 Q50 48 70 55" stroke="white" stroke-width="2" opacity="0.5" fill="none"/>
+    <rect x="42" y="18" width="16" height="12" rx="3" fill="#1A5276"/>
+    <rect x="45" y="15" width="10" height="5" rx="2" fill="#2E86C1"/>
+  </svg>`,
+  catheter:`<svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#F5F0FF" rx="12"/>
+    <path d="M25 75 Q30 60 45 50 Q60 40 70 25" stroke="#8E44AD" stroke-width="6" stroke-linecap="round" fill="none"/>
+    <path d="M25 75 Q30 60 45 50 Q60 40 70 25" stroke="#D7BDE2" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <circle cx="70" cy="25" r="5" fill="#8E44AD"/>
+    <circle cx="25" cy="75" r="7" fill="#6C3483" stroke="white" stroke-width="2"/>
+    <circle cx="25" cy="75" r="3" fill="white"/>
+  </svg>`,
+  respirator:`<svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#F0F8FF" rx="12"/>
+    <ellipse cx="50" cy="54" rx="32" ry="24" fill="#2C3E50" opacity="0.9"/>
+    <ellipse cx="50" cy="50" rx="32" ry="24" fill="#34495E"/>
+    <path d="M20 50 Q50 62 80 50" stroke="#1A252F" stroke-width="2" fill="none"/>
+    <path d="M20 43 Q50 55 80 43" stroke="#1A252F" stroke-width="1" fill="none" opacity="0.5"/>
+    <ellipse cx="50" cy="50" rx="32" ry="24" fill="none" stroke="#5D6D7E" stroke-width="1.5"/>
+    <rect x="44" y="46" width="12" height="8" rx="2" fill="#7F8C8D"/>
+    <line x1="10" y1="44" x2="20" y2="48" stroke="#34495E" stroke-width="3" stroke-linecap="round"/>
+    <line x1="10" y1="56" x2="20" y2="53" stroke="#34495E" stroke-width="3" stroke-linecap="round"/>
+    <line x1="90" y1="44" x2="80" y2="48" stroke="#34495E" stroke-width="3" stroke-linecap="round"/>
+    <line x1="90" y1="56" x2="80" y2="53" stroke="#34495E" stroke-width="3" stroke-linecap="round"/>
+  </svg>`,
+  default:`<svg width="90" height="90" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#EBF5FB" rx="12"/>
+    <rect x="25" y="30" width="50" height="40" rx="4" fill="#2980B9" opacity="0.8"/>
+    <path d="M25 42 L75 42" stroke="white" stroke-width="1" opacity="0.4"/>
+    <rect x="32" y="48" width="20" height="3" rx="1" fill="white" opacity="0.5"/>
+    <rect x="32" y="55" width="14" height="3" rx="1" fill="white" opacity="0.5"/>
+  </svg>`
+};
+
+function prodImg(name){
+  const n=name.toLowerCase();
+  if(n.includes('glove')) return PROD_IMG.gloves;
+  if(n.includes('mask')||n.includes('respirator')||n.includes('n95')) return PROD_IMG.respirator;
+  if(n.includes('brief')) return PROD_IMG.briefs;
+  if(n.includes('paste')||n.includes('remedy')) return PROD_IMG.paste;
+  if(n.includes('alcohol')||n.includes('prep pad')) return PROD_IMG.alcohol;
+  if(n.includes('wipe')||n.includes('chg')) return PROD_IMG.wipes;
+  if(n.includes('catheter')||n.includes('foley')) return PROD_IMG.catheter;
+  return PROD_IMG.default;
+}
+
+function productCatalogScore(q){
+  const raw=q.trim();
+  if(!raw||typeof PRODUCTS==='undefined') return 0;
+  const n=raw.toLowerCase();
+  if(PRODUCTS.some(p=>p.sku.toLowerCase()===n||String(p.cmir||'').toLowerCase()===n)) return 1;
+  if(PRODUCTS.some(p=>p.sku.toLowerCase().includes(n)||String(p.cmir||'').toLowerCase().includes(n))) return 0.94;
+
+  const words=norm(raw).split(/\s+/).filter(w=>w.length>1);
+  if(!words.length) return 0;
+  let best=0;
+  PRODUCTS.forEach(p=>{
+    const hay=(p.name+' '+p.brand+' '+p.sku+' '+(p.cmir||'')).toLowerCase();
+    const hits=words.reduce((acc,w)=>acc+(hay.includes(w)?1:0),0);
+    if(hits) best=Math.max(best,Math.min(0.95,0.46+(hits/words.length)*0.44+(hits>1?0.08:0)));
+  });
+  return best;
+}
+
+function filterProducts(q){
+  const raw=q.trim();
+  // Numeric-only → SKU lookup
+  if(/^\d+$/.test(raw)){
+    const found=PRODUCTS.filter(p=>p.sku.includes(raw));
+    return found.length?found:PRODUCTS;
+  }
+  // Alphanumeric SKU pattern
+  if(/^[A-Z]{2,5}\d/i.test(raw)){
+    const found=PRODUCTS.filter(p=>p.sku.toLowerCase().includes(raw.toLowerCase()));
+    return found.length?found:PRODUCTS;
+  }
+  // Word-level scoring — split query and score each product
+  const words=norm(raw).split(/\s+/).filter(w=>w.length>1);
+  if(!words.length) return PRODUCTS;
+  const scored=PRODUCTS.map(p=>{
+    const hay=(p.name+' '+p.brand+' '+p.sku+' '+(p.cmir||'')).toLowerCase();
+    const score=words.reduce((acc,w)=>acc+(hay.includes(w)?1:0),0);
+    return{p,score};
+  });
+  const matched=scored.filter(x=>x.score>0).sort((a,b)=>b.score-a.score).map(x=>x.p);
+  return matched.length?matched:PRODUCTS;
+}
+
+function renderProducts(q,r){
+  const rows=filterProducts(q);
+  const pCount=rows.length, dCount=38+Math.floor(pCount*.5), vCount=12, gCount=6;
+
+  const prodSidebar=filterSidebar([
+    {title:'Brand',items:[
+      {label:'Clinical Supply Co.',count:7},{label:'Care Essentials',count:2},{label:'Remedy',count:1}
+    ]},
+    {title:'Category',items:[
+      {label:'Gloves & PPE',count:4},{label:'Incontinence',count:2},
+      {label:'Catheters',count:1},{label:'Skin Care',count:2},{label:'Respiratory',count:1}
+    ]},
+    {title:'Price Range',items:[
+      {label:'Under $10',count:5},{label:'$10 – $25',count:3},{label:'Over $25',count:2}
+    ]},
+    {title:'Availability',items:[
+      {label:'In Stock',count:7},{label:'Low Stock',count:2},{label:'Out of Stock',count:1}
+    ]}
+  ]);
+
+  resultsEl.innerHTML=`
+    <!-- TABS -->
+    <div class="res-tabs" role="tablist">
+      <button class="rtab active" role="tab" aria-selected="true" id="tab-products" onclick="switchTab('products')">Products <span class="tab-count">${pCount}</span></button>
+      <button class="rtab" role="tab" aria-selected="false" id="tab-documents" onclick="switchTab('documents')">Documents <span class="tab-count">${dCount}</span></button>
+      <button class="rtab" role="tab" aria-selected="false" id="tab-videos" onclick="switchTab('videos')">Videos <span class="tab-count">${vCount}</span></button>
+      <button class="rtab" role="tab" aria-selected="false" id="tab-guides" onclick="switchTab('guides')">Guides <span class="tab-count">${gCount}</span></button>
+    </div>
+
+    <!-- PRODUCT TAB: filter sidebar + grid -->
+    <div id="product-tab-content">
+      <div class="prod-layout">
+        ${prodSidebar}
+        <div class="prod-main">
+          <div class="filter-row">
+            <div class="filter-row-left">
+              <span class="result-count-label">${pCount.toLocaleString()} results</span>
+              <select class="sort-sel" aria-label="Sort products">
+                <option>Sort: Relevance</option><option>Price: Low to High</option>
+                <option>Price: High to Low</option><option>Brand A–Z</option><option>Availability</option>
+              </select>
+            </div>
+            <div class="view-toggle">
+              <button class="vtbtn active" aria-label="Grid view">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </button>
+              <button class="vtbtn" aria-label="List view">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="pcard-grid" role="list" aria-label="Product results">
+            ${rows.map(p=>{
+              const av=availStyle(p.av);
+              const dotColor=av.dot;
+              const avLabel=p.av==='in'?'In Stock':p.av==='low'?'Limited Availability':'Out of Stock';
+              const swatches=(p.colors||['#888']).map((c,i)=>`<span class="swatch${i===0?' sel':''}" style="background:${c}" onclick="this.parentNode.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));this.classList.add('sel')"></span>`).join('');
+              const extraSwatch=p.extra>0?`<span class="swatch-more">+${p.extra}</span>`:'';
+              const units=(p.units||['1/EA','2/CS']).map((u,i)=>`<button class="unit-btn${i===0?' active':''}" onclick="this.parentNode.querySelectorAll('.unit-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">${u}</button>`).join('');
+              return `
+              <div class="pcard" role="listitem" tabindex="0" aria-label="${p.name}">
+                <div class="pcard-imgzone">${prodImg(p.name)}</div>
+                <div class="pcard-body">
+                  <div class="pcard-brand-lbl">${p.brand}</div>
+                  <div class="pcard-title">${p.name}</div>
+                  <div class="pcard-ids">
+                    <div class="pcard-id-row"><span class="pcard-id-lbl">Item #:</span><span>${p.sku}</span>
+                      <button class="pcard-copy" onclick="navigator.clipboard?.writeText('${p.sku}')" aria-label="Copy">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                    </div>
+                    <div class="pcard-id-row"><span class="pcard-id-lbl">CMIR #:</span><span>${p.cmir||'—'}</span></div>
+                  </div>
+                  <div class="pcard-swatches">${swatches}${extraSwatch}</div>
+                  <div class="pcard-units">${units}</div>
+                  <div class="pcard-avail-row">
+                    <span class="avail-dot-sm" style="background:${dotColor}"></span>
+                    <span style="color:${dotColor};font-weight:500">${avLabel}</span>
+                    ${p.av==='low'?`<a class="avail-more" href="#" onclick="return false">More Info</a>`:''}
+                  </div>
+                  <div class="pcard-price-row">
+                    <div class="pcard-price-block">
+                      <span class="pcard-price-lbl">Price</span>
+                      <span class="pcard-price-val">${p.price}</span>
+                    </div>
+                    <div class="qty-ctrl" role="group" aria-label="Quantity">
+                      <button class="qty-btn" onclick="const v=this.nextElementSibling;v.value=Math.max(1,+v.value-1)">−</button>
+                      <input class="qty-val" type="number" value="1" min="1" aria-label="Quantity"/>
+                      <button class="qty-btn" onclick="const v=this.previousElementSibling;v.value=+v.value+1">+</button>
+                    </div>
+                  </div>
+                  <label class="pcard-compare"><input type="checkbox" aria-label="Compare ${p.name}"> Compare</label>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+          <div class="pages" role="navigation">
+            <button class="pgbtn active" aria-current="page">1</button>
+            <button class="pgbtn">2</button><button class="pgbtn">3</button><button class="pgbtn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OTHER TABS -->
+    <div id="other-tab-content" class="hidden"></div>
+  `;
+  window._currentQ=q; window._currentR=r;
+}
+
+// ── TAB CONTENT DATA ─────────────────────────────────────────
+
+const VIDEOS=[
+  {title:'Proper Glove Selection for Clinical Settings',src:'Clinical Education',dur:'8:42',bg:'#1e40af',kw:['glove','nitrile','latex','ppe','exam','hand']},
+  {title:'Catheter Care & CAUTI Prevention Best Practices',src:'APIC Learning',dur:'14:20',bg:'#065f46',kw:['catheter','foley','cauti','urinary','infection','care']},
+  {title:'Wound Care & Pressure Injury Protocol',src:'WOCN Society',dur:'22:05',bg:'#166534',kw:['wound','pressure','injury','ulcer','dressing','skin']},
+  {title:'SDS & Hazardous Material Safe Handling',src:'OSHA Training',dur:'11:33',bg:'#92400e',kw:['sds','msds','hazardous','chemical','formalin','safety']},
+  {title:'CHG Surgical Prep Bathing Protocol',src:'AORN Online',dur:'9:17',bg:'#3730a3',kw:['chg','surgical','bathing','prep','wipe','skin','antiseptic']},
+  {title:'PPE Donning & Doffing — Full Sequence',src:'CDC IPC',dur:'6:51',bg:'#1e3a5f',kw:['ppe','mask','gown','glove','donning','respirator','n95']},
+  {title:'Alcohol Prep Pad — Correct Application Technique',src:'Clinical Education',dur:'4:12',bg:'#4c1d95',kw:['alcohol','prep','pad','antiseptic','skin','clean','sterile']},
+  {title:'Sterility & Shelf Life — Expiry Management',src:'IAHCSMM',dur:'13:28',bg:'#78350f',kw:['shelf','life','sterility','expiration','device','storage']},
+  {title:'Incontinence Product Fitting & Selection',src:'WOCN Society',dur:'10:04',bg:'#701a75',kw:['brief','incontinence','adult','fitting','skin']},
+  {title:'N95 Respirator Fit-Test Procedure',src:'NIOSH',dur:'7:55',bg:'#0c4a6e',kw:['n95','respirator','fit','test','niosh','airborne','ppe','mask']},
+  {title:'Skin Barrier & Moisture Protection Guide',src:'Clinical Education',dur:'8:30',bg:'#312e81',kw:['skin','barrier','moisture','protectant','remedy','paste','wound']},
+  {title:'Medical Supply Procurement Fundamentals',src:'AHRMM',dur:'18:45',bg:'#14532d',kw:['supply','procurement','inventory','management','catalog','sku']}
+];
+
+const GUIDES=[
+  {title:'Nitrile vs Latex vs Vinyl — Clinical Glove Selection Guide',cat:'Clinical Reference',pages:8,size:'1.2 MB',updated:'2024-04',kw:['glove','nitrile','latex','vinyl','selection','exam','ppe']},
+  {title:'Foley Catheter Insertion & Maintenance — Step-by-Step',cat:'Clinical Procedure',pages:12,size:'2.1 MB',updated:'2024-01',kw:['catheter','foley','insertion','urinary','care','maintenance']},
+  {title:'CHG Wipes Preoperative Bathing — Patient Guide',cat:'Patient Education',pages:4,size:'0.8 MB',updated:'2023-11',kw:['chg','wipe','bathing','surgical','prep','patient','skin']},
+  {title:'Wound Care Quick Reference — Dressing Selection Matrix',cat:'Clinical Reference',pages:6,size:'1.5 MB',updated:'2024-02',kw:['wound','dressing','care','pressure','injury','selection','skin']},
+  {title:'PPE Quick-Reference Poster — Donning & Doffing Order',cat:'Quick Reference',pages:2,size:'0.5 MB',updated:'2024-06',kw:['ppe','mask','gown','glove','donning','doffing','n95','respirator']},
+  {title:'Alcohol Prep Pad — Proper Skin Prep Technique',cat:'Clinical Procedure',pages:3,size:'0.6 MB',updated:'2024-05',kw:['alcohol','prep','pad','skin','antiseptic','technique','sterile']},
+  {title:'Incontinence Management — Product Selection & Fitting',cat:'Clinical Reference',pages:10,size:'1.8 MB',updated:'2024-03',kw:['incontinence','brief','adult','selection','fitting']},
+  {title:'Medical Supply Inventory Control — User Manual',cat:'User Manual',pages:24,size:'4.2 MB',updated:'2023-10',kw:['inventory','supply','catalog','sku','management','procurement']},
+  {title:'SDS Library Navigation & Compliance Guide',cat:'Compliance',pages:5,size:'0.9 MB',updated:'2024-04',kw:['sds','compliance','safety','chemical','hazardous','osha']},
+  {title:'Sterile Field Setup & Expiry Tracking — Reference Card',cat:'Quick Reference',pages:2,size:'0.4 MB',updated:'2024-06',kw:['sterile','expiry','shelf','life','device','tracking','storage']}
+];
+
+const GUIDE_CAT_CLS={
+  'Clinical Reference':'cc','Clinical Procedure':'cl','Patient Education':'ca',
+  'Quick Reference':'cb','User Manual':'ca','Compliance':'cc'
+};
+
+function scoreItems(q, items, kwField){
+  const words=norm(q).split(/\s+/).filter(w=>w.length>2);
+  if(!words.length) return items;
+  const scored=items.map(item=>{
+    const keys=item[kwField]||[];
+    const score=words.reduce((a,w)=>a+(keys.some(k=>k.includes(w)||w.includes(k))?1:0),0);
+    return{item,score};
+  });
+  const matched=scored.filter(x=>x.score>0).sort((a,b)=>b.score-a.score).map(x=>x.item);
+  return matched.length?matched:items;
+}
+
+// ── FILTER SIDEBAR BUILDER ────────────────────────────────────
+
+function filterSidebar(sections){
+  return `
+  <aside class="tab-sidebar" aria-label="Filter options">
+    ${sections.map(sec=>`
+    <div class="fsec">
+      <div class="fsec-hdr" onclick="this.parentNode.classList.toggle('collapsed')" role="button" tabindex="0"
+           onkeydown="if(event.key==='Enter')this.click()">
+        ${sec.title}
+        <span class="fsec-icon">−</span>
+      </div>
+      <div class="fsec-body">
+        ${sec.items.map(item=>`
+        <label class="fcheck">
+          <input type="checkbox" ${item.checked?'checked':''}>
+          <span>${item.label}</span>
+          ${item.count?`<span class="fcount">${item.count}</span>`:''}
+        </label>`).join('')}
+        ${sec.more?`<button class="fmore" onclick="event.stopPropagation()">View ${sec.more} More</button>`:''}
+      </div>
+    </div>`).join('')}
+  </aside>`;
+}
+
+// ── DOC ITEM BUILDER ─────────────────────────────────────────
+
+const DOC_ICON={
+  video:`<div class="dicon dicon-video"><svg width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`,
+  pdf:`<div class="dicon dicon-pdf"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>`,
+  web:`<div class="dicon dicon-web"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>`
+};
+
+function docItemV2(icon,title,desc,meta,btn){
+  return `
+  <div class="ditem-v2" role="listitem" tabindex="0">
+    ${DOC_ICON[icon]||DOC_ICON.pdf}
+    <div class="ditem-v2-body">
+      <a class="ditem-v2-title" href="#" onclick="return false">${title}</a>
+      <p class="ditem-v2-desc">${desc}</p>
+      <div class="ditem-v2-meta">${meta}</div>
+    </div>
+    <div class="ditem-v2-action">${btn}</div>
+  </div>`;
+}
+
+function metaIcon(type){
+  if(type==='clock') return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  if(type==='cal') return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+  if(type==='page') return `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+  return '';
+}
+function metaTag(type,text){
+  return `<span class="dmeta-item">${metaIcon(type)}<span>${text}</span></span>`;
+}
+function actionBtn(type,label){
+  const styles={
+    watch:`background:transparent;border:1.5px solid var(--border);color:var(--text-primary)`,
+    download:`background:transparent;border:1.5px solid var(--border);color:var(--text-primary)`,
+    view:`background:transparent;border:1.5px solid var(--border);color:var(--text-primary)`
+  };
+  const icons={
+    watch:`<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+    download:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+    view:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
+  };
+  return `<button style="${styles[type]||styles.view};border-radius:100px;padding:7px 14px;font-size:12px;font-weight:500;font-family:var(--sans);cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;transition:all .15s"
+    onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-primary)'"
+    onclick="event.stopPropagation()">${icons[type]||''} ${label}</button>`;
+}
+
+// ── TAB LAYOUTS ───────────────────────────────────────────────
+
+// Document type → header colour + icon
+const DOC_TYPE_STYLE={
+  'SDS'    :{bg:'#1d4ed8',label:'SDS'},
+  'MSDS'   :{bg:'#1d4ed8',label:'MSDS'},
+  'COA'    :{bg:'#0369a1',label:'COA'},
+  'IFU'    :{bg:'#0891b2',label:'IFU'},
+  'Statement':{bg:'#0f766e',label:'Statement'},
+  'Protocol' :{bg:'#059669',label:'Protocol'},
+  'Policy'   :{bg:'#7c3aed',label:'Policy'},
+  'Report'   :{bg:'#d97706',label:'Report'},
+  'Recall'   :{bg:'#dc2626',label:'Recall'},
+  'Training' :{bg:'#be185d',label:'Training'},
+  'Guide'    :{bg:'#4338ca',label:'Guide'},
+  'default'  :{bg:'#475569',label:'DOC'}
+};
+
+function docTypeStyle(type){
+  return DOC_TYPE_STYLE[type]||DOC_TYPE_STYLE.default;
+}
+
+function contentSidebar(){
+  return filterSidebar([
+    {title:'Document Type',items:[
+      {label:'User Manuals',count:18},{label:'Product Setup',count:24},
+      {label:'Parts Guides',count:12},{label:'Quick Start Sheets',count:9}
+    ]},
+    {title:'Product Category',items:[
+      {label:'Standard Walkers',count:15},{label:'Knee Walkers',count:11},
+      {label:'Folding Walkers',count:8},{label:'Bariatric Walkers',count:6},
+      {label:'Clinical Supplies',count:38}
+    ],more:5}
+  ]);
+}
+
+function contentIcon(kind){
+  const icons={
+    video:`<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+    pdf:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M9 18h4"/></svg>`,
+    web:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>`
+  };
+  return `<div class="content-icon ${kind}">${icons[kind]||icons.pdf}</div>`;
+}
+
+function contentAction(kind,label){
+  const icons={
+    Watch:`<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+    Download:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+    View:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
+  };
+  return `<button class="content-action-btn" onclick="event.stopPropagation()" aria-label="${label} content">${icons[label]||''}${label}</button>`;
+}
+
+function contentListItem(item){
+  return `
+    <div class="content-item" role="listitem" tabindex="0" aria-label="${item.title}">
+      ${contentIcon(item.kind)}
+      <div class="content-body">
+        <a href="#" class="content-title" onclick="return false">${item.title}</a>
+        <p class="content-desc">${item.desc}</p>
+        <div class="content-meta">${item.meta}</div>
+      </div>
+      <div class="content-action">${contentAction(item.kind,item.action)}</div>
+    </div>`;
+}
+
+function contentLayout(kind,total,q,items,sortOptions){
+  const qLabel=q?`"${q}"`:'all content';
+  return `
+  <div class="tab-layout">
+    ${contentSidebar()}
+    <div class="tab-main">
+      <div class="content-toolbar">
+        <span class="content-summary">Showing <strong>${total}</strong> Contents &amp; Documents for <em>${qLabel}</em>.</span>
+        <div class="content-sort">
+          <label>Sort By</label>
+          <select class="sort-sel" aria-label="Sort ${kind}">
+            ${sortOptions.map(o=>`<option>${o}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="content-list" role="list" aria-label="${kind} results">
+        ${items.map(contentListItem).join('')}
+      </div>
+      <div class="pages" style="margin-top:20px">
+        <button class="pgbtn active" aria-current="page">1</button><button class="pgbtn">2</button>
+        <button class="pgbtn">3</button><button class="pgbtn">›</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTabDocs(q, sourceRows=null){
+  const rows=sourceRows||scoreItems(q,QA_RELATED_DOCS,'kw');
+  const total=rows.length+Math.floor(Math.random()*220+10);
+  const items=rows.map((d,i)=>{
+    const pages=Math.floor(Math.random()*18+3);
+    const kind=i%3===2?'web':'pdf';
+    const action=kind==='web'?'View':'Download';
+    const title=d.title;
+    const desc=`${d.type} reference for ${title.replace(/—.*/,'').trim()}. Includes product details, compliance notes, and usage guidance.`;
+    const meta=[
+      metaTag('page',`${pages} Pages`),
+      metaTag('cal',d.upd||'Mar 2025'),
+      `<span class="dmeta-item">Item #:${d.type||'DOC'}${String(i+1).padStart(4,'0')}</span>`
+    ].join('');
+    return {kind,title,desc,meta,action};
+  });
+  return contentLayout('document',total,q,items,['Best Match','Newest','Oldest','Title A-Z']);
+}
+
+function renderTabVideos(q){
+  const rows=scoreItems(q,VIDEOS,'kw');
+  const total=rows.length+47;
+  const items=rows.map((v,i)=>({
+    kind:'video',
+    title:v.title,
+    desc:`Step-by-step video instructions from ${v.src}, designed for clinical teams and supply users who need a fast visual walkthrough.`,
+    meta:[
+      metaTag('clock',v.dur),
+      metaTag('cal','Mar 2025'),
+      `<span class="dmeta-item">Item #:VID${String(i+7400).padStart(5,'0')}</span>`
+    ].join(''),
+    action:'Watch'
+  }));
+  return contentLayout('video',total,q,items,['Best Match','Newest','Duration Low to High','Duration High to Low']);
+}
+
+function renderTabGuides(q){
+  const rows=scoreItems(q,GUIDES,'kw');
+  const total=rows.length+83;
+  const items=rows.map((g,i)=>({
+    kind:i%4===2?'web':'pdf',
+    title:g.title,
+    desc:`${g.cat} content with setup guidance, reference material, and product details for quick team access.`,
+    meta:[
+      metaTag('page',`${g.pages} Pages | ${g.size}`),
+      metaTag('cal',g.updated),
+      `<span class="dmeta-item">Item #:GUIDE${String(i+6700).padStart(5,'0')}</span>`
+    ].join(''),
+    action:i%4===2?'View':'Download'
+  }));
+  return contentLayout('guide',total,q,items,['Best Match','Newest','Title A-Z']);
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.rtab').forEach(t=>{
+    t.classList.remove('active'); t.setAttribute('aria-selected','false');
+  });
+  const active=document.getElementById('tab-'+tab);
+  if(active){ active.classList.add('active'); active.setAttribute('aria-selected','true'); }
+  const prodContent=document.getElementById('product-tab-content');
+  const other=document.getElementById('other-tab-content');
+  const q=window._currentQ||'';
+  if(tab==='products'){
+    if(prodContent) prodContent.classList.remove('hidden');
+    if(other) other.classList.add('hidden');
+  } else {
+    if(prodContent) prodContent.classList.add('hidden');
+    if(other){
+      other.classList.remove('hidden');
+      if(tab==='documents') other.innerHTML=renderTabDocs(q);
+      else if(tab==='videos') other.innerHTML=renderTabVideos(q);
+      else if(tab==='guides') other.innerHTML=renderTabGuides(q);
+    }
+  }
+}
+
+function switchDocTab(tab){
+  document.querySelectorAll('.rtab').forEach(t=>{
+    t.classList.remove('active'); t.setAttribute('aria-selected','false');
+  });
+  const active=document.getElementById('dtab-'+tab);
+  if(active){ active.classList.add('active'); active.setAttribute('aria-selected','true'); }
+  const content=document.getElementById('doc-tab-content');
+  const q=window._currentQ||'';
+  if(!content) return;
+  if(tab==='documents') content.innerHTML=renderDocTable(q);
+  else if(tab==='videos') content.innerHTML=renderTabVideos(q);
+  else if(tab==='guides') content.innerHTML=renderTabGuides(q);
+}
+
+function renderDocTable(q){
+  const sub=window._docSub;
+  let rows=DOCS.filter(d=>!sub||(d.sub===sub));
+  if(!rows.length) rows=DOCS;
+  return renderTabDocs(q,rows);
+}
+
+function renderDocs(q,r,sub){
+  window._currentQ=q; window._docSub=sub;
+  const pct=Math.round(r.conf*100);
+  const sublbl=sub||'All Documents';
+  let rows=DOCS.filter(d=>!sub||(d.sub===sub));
+  if(!rows.length) rows=DOCS;
+
+  resultsEl.innerHTML=`
+    <div class="r-hdr">
+      <div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:4px;color:var(--text-primary)">Document Results</div>
+        <div class="r-meta">${rows.length} documents · Category: ${sublbl} · ${pct}% confidence</div>
+      </div>
+      <span class="r-tag" style="background:var(--blue-dim);color:var(--blue);font-size:11px;font-weight:700;letter-spacing:.08em;padding:6px 14px;border-radius:100px">DOCUMENT SEARCH</span>
+    </div>
+    <div class="res-tabs" role="tablist">
+      <button class="rtab active" role="tab" aria-selected="true" id="dtab-documents" onclick="switchDocTab('documents')">Documents <span class="tab-count">${rows.length}</span></button>
+      <button class="rtab" role="tab" aria-selected="false" id="dtab-videos" onclick="switchDocTab('videos')">Videos <span class="tab-count">12</span></button>
+      <button class="rtab" role="tab" aria-selected="false" id="dtab-guides" onclick="switchDocTab('guides')">Guides <span class="tab-count">6</span></button>
+    </div>
+    <div id="doc-tab-content">${renderDocTable(q)}</div>
+  `;
+}
+
+// ── Q&A RESOURCE DATA ────────────────────────────────────────
+
+const QA_RELATED_DOCS=[
+  {title:'Nitrile Exam Gloves — Safety Data Sheet',type:'SDS',cls:'cc',upd:'2024-03-12',stat:'current',scls:'s-cur',kw:['glove','nitrile','ppe','chemical','latex','hand']},
+  {title:'Foley Catheter — Instructions for Use',type:'IFU',cls:'cc',upd:'2023-07-01',stat:'review',scls:'s-rev',kw:['catheter','foley','urinary','insertion','care','tube']},
+  {title:'CHG 2% Wipes — PFAS Disclosure Statement',type:'Statement',cls:'cc',upd:'2023-11-30',stat:'review',scls:'s-rev',kw:['chg','pfas','wipe','surgical','bathing','skin']},
+  {title:'Wound Care & Pressure Injury Protocol',type:'Protocol',cls:'cl',upd:'2024-01-20',stat:'current',scls:'s-cur',kw:['wound','pressure','injury','ulcer','care','dressing','skin']},
+  {title:'Formalin 10% Buffered — SDS',type:'SDS',cls:'cc',upd:'2024-03-12',stat:'current',scls:'s-cur',kw:['formalin','chemical','hazardous','specimen','fixative']},
+  {title:'N95 Respirator — Certificate of Compliance',type:'COA',cls:'cc',upd:'2024-06-01',stat:'current',scls:'s-cur',kw:['n95','respirator','mask','niosh','ppe','airborne','filter']},
+  {title:'Infection Prevention Policy — Surgical Site',type:'Policy',cls:'cl',upd:'2024-02-14',stat:'current',scls:'s-cur',kw:['infection','surgical','prevention','ssi','site','prep']},
+  {title:'Alcohol Prep Pads — IFU & Shelf Life Guide',type:'IFU',cls:'cc',upd:'2024-05-10',stat:'current',scls:'s-cur',kw:['alcohol','prep','pad','shelf','life','expiry','sterile']},
+  {title:'Medical Supply Disposal & OSHA Compliance',type:'Policy',cls:'cc',upd:'2023-09-01',stat:'review',scls:'s-rev',kw:['disposal','osha','biohazard','waste','compliance','regulation']},
+  {title:'Q3 2024 Supply Usage Report',type:'Report',cls:'cb',upd:'2024-10-15',stat:'current',scls:'s-cur',kw:['usage','report','spend','analytics','quarter','inventory']}
+];
+
+// Product keyword map for Q&A context matching
+const PRODUCT_KW={
+  'NON21420':['glove','nitrile','exam','ppe','latex','hand','medium'],
+  'NON21421':['glove','nitrile','exam','ppe','latex','hand','large'],
+  'NON21419':['glove','nitrile','exam','ppe','latex','hand','small'],
+  'MDS090735':['brief','incontinence','adult','diaper','medium'],
+  'MDS090736':['brief','incontinence','adult','diaper','large'],
+  'MSC092504':['skin','protectant','remedy','paste','barrier','moisture'],
+  '232209':['alcohol','prep','pad','sterile','antiseptic','skin','clean'],
+  'MDS096220':['chg','wipe','surgical','antiseptic','chlorhexidine','skin','prep'],
+  '243136':['catheter','foley','urinary','tube','drainage','bladder','sterile'],
+  'NON27501':['n95','respirator','mask','ppe','airborne','filter','niosh']
+};
+
+function matchByKW(q, kwMap){
+  const words=norm(q).split(/\s+/).filter(w=>w.length>2);
+  return PRODUCTS.map(p=>{
+    const keys=kwMap[p.sku]||[];
+    const score=words.reduce((a,w)=>a+(keys.some(k=>k.includes(w)||w.includes(k))||p.name.toLowerCase().includes(w)?1:0),0);
+    return{p,score};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).map(x=>x.p);
+}
+
+function matchDocs(q){
+  const words=norm(q).split(/\s+/).filter(w=>w.length>2);
+  return QA_RELATED_DOCS.map(d=>{
+    const score=words.reduce((a,w)=>a+(d.kw.some(k=>k.includes(w)||w.includes(k))?1:0),0);
+    return{d,score};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).map(x=>x.d);
+}
+
+// ── SKELETON ─────────────────────────────────────────────────
+
+function skeletonQA(q){
+  const skelCard=(n)=>Array(n).fill(0).map(()=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;gap:10px;align-items:flex-start">
+      <div class="skel" style="width:36px;height:36px;border-radius:var(--r);flex-shrink:0"></div>
+      <div style="flex:1">
+        <div class="skel skel-line w-full"></div>
+        <div class="skel skel-line w-60" style="margin-top:8px"></div>
+      </div>
+    </div>`).join('');
+  return `
+  <div class="qa-ai-wrap">
+    <div class="qa-ai-card">
+      <div class="qa-ai-top">
+        <span class="qa-ai-badge">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          AI Answer
+        </span>
+        <span style="font-size:11px;font-family:var(--mono);color:var(--text-muted);display:flex;align-items:center;gap:6px">
+          <span class="skel" style="width:8px;height:8px;border-radius:50%;display:inline-block"></span>Generating…
+        </span>
+      </div>
+      <div class="qa-query-echo">Q: "${q}"</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="skel skel-line w-full"></div>
+        <div class="skel skel-line w-full"></div>
+        <div class="skel skel-line w-80"></div>
+        <div class="skel skel-line w-full" style="margin-top:4px"></div>
+        <div class="skel skel-line w-60"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div class="qa-section">
+        <div class="qa-sec-hdr"><span class="qa-sec-title">Related Documents</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px">${skelCard(3)}</div>
+      </div>
+      <div class="qa-section">
+        <div class="qa-sec-hdr"><span class="qa-sec-title">Related Products</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px">${skelCard(3)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── MARKDOWN-LITE FORMATTER ───────────────────────────────────
+
+function fmtAnswer(text){
+  if(!text) return '<p>No answer available.</p>';
+  const lines=text.split('\n');
+  let html='',inUl=false,inOl=false;
+  for(const raw of lines){
+    const line=raw.trim();
+    if(!line){
+      if(inUl){html+='</ul>';inUl=false;}
+      if(inOl){html+='</ol>';inOl=false;}
+      continue;
+    }
+    const fmt=l=>l
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/`(.+?)`/g,'<code style="font-family:var(--mono);font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:3px">$1</code>');
+    if(/^[-•]\s/.test(line)){
+      if(!inUl){if(inOl){html+='</ol>';inOl=false;} html+='<ul>';inUl=true;}
+      html+=`<li>${fmt(line.replace(/^[-•]\s/,''))}</li>`;
+    } else if(/^\d+\.\s/.test(line)){
+      if(!inOl){if(inUl){html+='</ul>';inUl=false;} html+='<ol>';inOl=true;}
+      html+=`<li>${fmt(line.replace(/^\d+\.\s/,''))}</li>`;
+    } else {
+      if(inUl){html+='</ul>';inUl=false;}
+      if(inOl){html+='</ol>';inOl=false;}
+      html+=`<p>${fmt(line)}</p>`;
+    }
+  }
+  if(inUl) html+='</ul>';
+  if(inOl) html+='</ol>';
+  return html;
+}
+
+function localAIAnswer(q, docs, products){
+  const n=norm(q);
+  if(n.includes('shelf life')||n.includes('expiration')||n.includes('expiry')) return QA_KB.shelf_life;
+  if(n.includes('compare')||n.includes('difference between')||n.includes('nitrile vs')||n.includes('latex')) return QA_KB.compare;
+
+  const productNames=products.slice(0,3).map(p=>p.name).join(', ');
+  const docNames=docs.slice(0,2).map(d=>d.title).join('; ');
+
+  if(n.includes('recall')) return `For recall questions, first match the recall ID, affected item, and lot number against the active recall notice. Then quarantine affected stock, stop reordering the impacted lot, and document replacement or return steps.\n\nRelated references found: ${docNames || 'recall notices and safety alerts'}.`;
+  if(n.includes('sds')||n.includes('msds')||n.includes('safety data')) return `For SDS or MSDS questions, use the latest safety data sheet as the source of truth. Check hazard classification, PPE requirements, storage conditions, spill response, and disposal instructions before handling the item.\n\nRelated references found: ${docNames || 'safety data sheets and compliance documents'}.`;
+  if(n.includes('ifu')||n.includes('instructions for use')) return `For IFU questions, follow the product-specific instructions for setup, use, cleaning, storage, and disposal. If clinical use is involved, verify the item, size, sterility, and expiration before use.\n\nRelated references found: ${docNames || 'instructions for use and product guides'}.`;
+  if(n.includes('stock')||n.includes('available')||n.includes('availability')) return `For availability questions, check the product card status first, then confirm substitute options if the item is low or out of stock. Prioritize equivalent size, material, and clinical category before changing products.\n\nMatching products found: ${productNames || 'related catalog items'}.`;
+  if(n.includes('price')||n.includes('cost')) return `For price questions, compare the displayed unit price with the selected packaging unit. Case pricing and each-unit pricing can differ, so confirm the unit selector before ordering.\n\nMatching products found: ${productNames || 'related catalog items'}.`;
+
+  return `Here is the best answer from the available catalog and document context:\n\n- Start with the most relevant product or document match for the question.\n- Verify SKU, item description, size, and status before making a purchasing or clinical decision.\n- For compliance, safety, or use instructions, rely on the matching SDS, IFU, guide, or recall document.\n\nRelated products: ${productNames || 'no exact product match found'}.\nRelated documents: ${docNames || 'no exact document match found'}.`;
+}
+
+// ── MINI PRODUCT CARD (for Q&A sidebar) ──────────────────────
+
+function miniPcard(p){
+  const av=availStyle(p.av);
+  const icon=cardIcon(p.name);
+  return `
+  <div class="qa-prod-card" tabindex="0" role="listitem" aria-label="${p.name}" onclick="setQ('${ea(p.sku)}')">
+    <div class="qa-prod-icon">${icon}</div>
+    <div class="qa-prod-info">
+      <div class="qa-prod-name">${p.name}</div>
+      <div class="qa-prod-sku">${p.sku}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+        <span style="font-size:13px;font-weight:600;font-family:var(--mono)">${p.price}</span>
+        <span class="pcard-avail" style="background:${av.bg};color:${av.dot};padding:2px 7px;border-radius:100px;font-size:10px;font-family:var(--mono);font-weight:600">
+          <span class="avail-dot" style="background:${av.dot}"></span>${av.lbl}
+        </span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── MAIN ASYNC RENDERER ───────────────────────────────────────
+
+async function renderQA(q,r){
+  resultsEl.innerHTML=skeletonQA(q);
+
+  // Match resources immediately (synchronous)
+  const relDocs=(matchDocs(q).slice(0,4).length ? matchDocs(q).slice(0,4) : QA_RELATED_DOCS.slice(0,4));
+  const relProds=(matchByKW(q,PRODUCT_KW).slice(0,4).length ? matchByKW(q,PRODUCT_KW).slice(0,4) : PRODUCTS.slice(0,4));
+
+  const aiText=localAIAnswer(q,relDocs,relProds);
+
+  const answerHTML = `<div class="qa-answer-body">${fmtAnswer(aiText)}</div>`;
+
+  resultsEl.innerHTML=`
+  <div class="qa-ai-wrap">
+
+    <!-- ① AI ANSWER -->
+    <div class="qa-ai-card" role="region" aria-label="AI answer">
+      <div class="qa-ai-top">
+        <span class="qa-ai-badge">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          AI Answer
+        </span>
+        <div class="qa-feedback">
+          <span style="font-size:11px;color:var(--text-muted)">Helpful?</span>
+          <button class="qa-fb-btn" onclick="this.textContent='✓ Yes';this.style.color='var(--teal)';this.style.borderColor='var(--teal)'">Yes</button>
+          <button class="qa-fb-btn" onclick="this.textContent='✗ No';this.style.color='var(--red)';this.style.borderColor='var(--red)'">No</button>
+        </div>
+      </div>
+      <div class="qa-query-echo">Q: "${q}"</div>
+      ${answerHTML}
+    </div>
+
+    <!-- ② RELATED DOCS + RELATED PRODUCTS (two columns) -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px" class="qa-2col">
+
+      <!-- Documents -->
+      <div class="qa-section" role="region" aria-label="Related documents">
+        <div class="qa-sec-hdr">
+          <span class="qa-sec-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Related Documents
+          </span>
+          <button class="qa-sec-all" onclick="setQ('${ea(q)} SDS IFU')">See all →</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px" role="list">
+          ${relDocs.map(d=>`
+          <div class="qa-doc-card" role="listitem" tabindex="0" aria-label="${d.title}">
+            <div class="qa-doc-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div class="qa-doc-info">
+              <div class="qa-doc-title">${d.title}</div>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                <span class="dtag ${d.cls}" style="font-size:9px;padding:1px 6px">${d.type}</span>
+                <span class="dup">${d.upd}</span>
+              </div>
+            </div>
+            <svg class="qa-doc-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Products -->
+      <div class="qa-section" role="region" aria-label="Related products">
+        <div class="qa-sec-hdr">
+          <span class="qa-sec-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            Related Products
+          </span>
+          <button class="qa-sec-all" onclick="setQ('${ea(q)}')">See all →</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px" role="list">
+          ${relProds.map(p=>miniPcard(p)).join('')}
+        </div>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// FEATURE DETECTION — runs before main pipeline
+// ============================================================
+
+const FEATURE_MAP = {
+  'shopping list':   { page:'shopping-list',   icon:'🛒', label:'Shopping List',      desc:'Your saved items and draft orders.' },
+  'my list':         { page:'shopping-list',   icon:'🛒', label:'Shopping List',      desc:'Your saved items and draft orders.' },
+  'saved list':      { page:'shopping-list',   icon:'🛒', label:'Shopping List',      desc:'Your saved items and draft orders.' },
+  'order dashboard': { page:'order-dashboard', icon:'📊', label:'Order Dashboard',    desc:'Track, manage and reorder past orders.' },
+  'my orders':       { page:'order-dashboard', icon:'📊', label:'Order Dashboard',    desc:'Track, manage and reorder past orders.' },
+  'order history':   { page:'order-dashboard', icon:'📊', label:'Order Dashboard',    desc:'Track, manage and reorder past orders.' },
+  'purchase history':{ page:'order-dashboard', icon:'📊', label:'Order Dashboard',    desc:'Track, manage and reorder past orders.' },
+  'my account':      { page:'account',         icon:'👤', label:'My Account',         desc:'Profile, permissions, and preferences.' },
+  'account settings':{ page:'account',         icon:'👤', label:'My Account',         desc:'Profile, permissions, and preferences.' },
+  'formulary':       { page:'formulary',       icon:'📋', label:'Formulary',          desc:'Approved product catalog for your facility.' },
+  'approved items':  { page:'formulary',       icon:'📋', label:'Formulary',          desc:'Approved product catalog for your facility.' },
+  'analytics':       { page:'analytics',       icon:'📈', label:'Analytics',          desc:'Spend reports and usage insights.' },
+  'reports':         { page:'reports',         icon:'📈', label:'Reports & Analytics',desc:'Spend reports and usage insights.' },
+  'usage report':    { page:'reports',         icon:'📈', label:'Reports & Analytics',desc:'Spend reports and usage insights.' },
+  'favorites':       { page:'favorites',       icon:'⭐', label:'Favorites',          desc:'Your starred products and quick-add items.' },
+  'user management': { page:'users',           icon:'👥', label:'User Management',    desc:'Add, edit and manage account users.' },
+  'add user':        { page:'users',           icon:'👥', label:'User Management',    desc:'Add, edit and manage account users.' },
+  'locations':       { page:'locations',       icon:'📍', label:'Locations',          desc:'Facility addresses and delivery points.' },
+};
+
+const FEATURE_RELATED = {
+  'shopping-list':   [{ icon:'📦', name:'Product Catalog',   desc:'Browse all products' },{ icon:'⭐', name:'Favorites',       desc:'Your starred items' },{ icon:'📋', name:'Formulary',        desc:'Approved items' }],
+  'order-dashboard': [{ icon:'🧾', name:'Invoices',          desc:'Billing documents' },  { icon:'📦', name:'Reorder Items',    desc:'Quick reorder' },     { icon:'📊', name:'Spend Report',     desc:'Monthly analytics' }],
+  'account':         [{ icon:'👥', name:'User Management',   desc:'Manage access' },      { icon:'📍', name:'Locations',        desc:'Delivery addresses' },{ icon:'🔐', name:'Permissions',      desc:'Role settings' }],
+  'formulary':       [{ icon:'📦', name:'Product Catalog',   desc:'All products' },       { icon:'📊', name:'Usage Report',     desc:'Utilization data' }, { icon:'⭐', name:'Favorites',        desc:'Starred items' }],
+  'reports':         [{ icon:'📊', name:'Order Dashboard',   desc:'Order history' },      { icon:'🧾', name:'Invoices',         desc:'Billing' },          { icon:'📋', name:'Formulary',        desc:'Approved items' }],
+  'analytics':       [{ icon:'📊', name:'Order Dashboard',   desc:'Order history' },      { icon:'🧾', name:'Invoices',         desc:'Billing' },          { icon:'📋', name:'Formulary',        desc:'Approved items' }],
+  'favorites':       [{ icon:'🛒', name:'Shopping List',     desc:'Draft orders' },       { icon:'📋', name:'Formulary',        desc:'Approved items' }, { icon:'📦', name:'Product Catalog',   desc:'Browse all' }],
+  'users':           [{ icon:'👤', name:'My Account',        desc:'Your profile' },       { icon:'📍', name:'Locations',        desc:'Facility sites' },   { icon:'🔐', name:'Permissions',      desc:'Role settings' }],
+  'locations':       [{ icon:'👤', name:'My Account',        desc:'Your profile' },       { icon:'📦', name:'Product Catalog',  desc:'All products' },     { icon:'📊', name:'Order Dashboard',  desc:'All orders' }],
+};
+
+// Mock order data
+const MOCK_ORDERS = {
+  'ORD-2024-8821':{ num:'ORD-2024-8821', date:'Nov 28, 2024', status:'Fulfilled', statusCls:'success', total:'$1,847.32',
+    ship:{to:'St. Mary\'s Hospital — Central Supply', est:'Dec 2, 2024', track:'1Z8E49520314842936'},
+    lines:[
+      { sku:'NON21420', name:'Nitrile Exam Gloves, Powder-Free, Medium', qty:10, unit:'BX', price:'$12.49', total:'$124.90' },
+      { sku:'MDS090735', name:'Ultra Briefs, Medium', qty:24, unit:'EA', price:'$24.99', total:'$599.76' },
+      { sku:'232209', name:'Alcohol Prep Pads, Sterile, Medium', qty:20, unit:'BX', price:'$4.29', total:'$85.80' },
+      { sku:'MDS096220', name:'CHG 2% Wipes, 6"×6.75"', qty:50, unit:'PK', price:'$18.99', total:'$949.50' },
+    ]},
+  'ORD-2024-9012':{ num:'ORD-2024-9012', date:'Dec 1, 2024', status:'Processing', statusCls:'warning', total:'$542.75',
+    ship:{to:'Memorial General — OR Supply', est:'Dec 6, 2024', track:'Pending'},
+    lines:[
+      { sku:'NON27501', name:'N95 Respirator, NIOSH-Approved', qty:40, unit:'EA', price:'$3.15', total:'$126.00' },
+      { sku:'243136', name:'Foley Catheter, 2-Way, 16Fr, 30cc', qty:12, unit:'EA', price:'$5.49', total:'$65.88' },
+      { sku:'MSC092504', name:'Remedy Calazime Skin Protectant Paste, 4oz', qty:24, unit:'EA', price:'$8.75', total:'$210.00' },
+    ]},
+};
+
+function parseOrderNum(q) {
+  const patterns = [
+    /\b(ORD-\d{4}-\d{4,})\b/i,
+    /\border[#\s]+(\d{4,})/i,
+    /\b#(\d{5,})\b/,
+  ];
+  for (const re of patterns) {
+    const m = q.match(re);
+    if (m) return (m[1]||m[0]).toUpperCase();
+  }
+  return null;
+}
+
+function detectSpecialIntent(raw) {
+  const q = raw.trim();
+  const n = q.toLowerCase();
+
+  // ── Feature navigation ──────────────────────────────────────
+  for (const [kw, feat] of Object.entries(FEATURE_MAP)) {
+    if (n === kw || n.startsWith(kw) || n.endsWith(kw)) {
+      return { intent:'FEATURE_NAV', conf:1.0, sub:null, ambig:false, all:{}, feature:feat };
+    }
+  }
+
+  // ── SKU vs SKU ──────────────────────────────────────────────
+  const vsMatch = q.match(/^([A-Z0-9]{3,})\s+vs\s+([A-Z0-9]{3,})$/i);
+  if (vsMatch) {
+    const s1 = vsMatch[1], s2 = vsMatch[2];
+    const p1 = PRODUCTS.find(p => p.sku.toLowerCase() === s1.toLowerCase());
+    const p2 = PRODUCTS.find(p => p.sku.toLowerCase() === s2.toLowerCase());
+    return { intent:'SKU_COMPARE', conf:1.0, sub:null, ambig:false, all:{}, skus:[s1,s2], products:[p1,p2] };
+  }
+
+  // ── Order lookup ────────────────────────────────────────────
+  const orderNum = parseOrderNum(q);
+  if (orderNum) {
+    return { intent:'ORDER_LOOKUP', conf:1.0, sub:null, ambig:false, all:{}, orderNum };
+  }
+
+  // ── Exact SKU / CMIR match ──────────────────────────────────
+  const exactProd = PRODUCTS.find(p =>
+    p.sku.toLowerCase() === n || (p.cmir && p.cmir.toLowerCase() === n)
+  );
+  if (exactProd) {
+    return { intent:'EXACT_SKU', conf:1.0, sub:null, ambig:false, all:{}, product:exactProd };
+  }
+
+  return null;
+}
+
+// ─── Exact SKU disambiguation panel ─────────────────────────
+function showExactSkuDisambig(product) {
+  disambigEl.classList.add('open');
+  disambigEl.innerHTML = `
+    <div class="exact-dismabig-panel">
+      <div class="exact-disambig-product">
+        <div class="exact-disambig-img">${prodImg(product.name)}</div>
+        <div>
+          <div class="exact-disambig-name">${product.name}</div>
+          <div class="exact-disambig-sku">SKU: ${product.sku} · CMIR: ${product.cmir||'—'}</div>
+          <div class="exact-disambig-price">${product.price} / ${(product.units||['EA'])[0]}</div>
+        </div>
+      </div>
+      <div class="exact-disambig-actions">
+        <button class="exact-disambig-btn-primary" onclick="renderItemPage('${product.sku}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Go to Item Page
+        </button>
+        <button class="exact-disambig-btn-secondary" onclick="renderComparables('${product.sku}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="9" height="18" rx="2"/><rect x="13" y="3" width="9" height="18" rx="2"/></svg>
+          Find Comparable Items
+        </button>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// NEW RENDERER — Item Detail Page
+// ============================================================
+function renderItemPage(sku) {
+  const p = PRODUCTS.find(x => x.sku.toLowerCase() === (sku||'').toLowerCase()) || PRODUCTS[0];
+  const av = availStyle(p.av);
+  const relDocs = DOCS.filter(d => d.sub === 'Compliance & Regulatory').slice(0,3);
+
+  resultsEl.innerHTML = `
+  <div style="margin-bottom:12px;">
+    <button onclick="history.back()" style="font-size:11px;font-family:var(--mono);color:var(--t3);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to search results
+    </button>
+  </div>
+  <div class="item-page">
+    <div class="item-page-hero">
+      <div class="item-page-imgzone">${prodImg(p.name)}</div>
+      <div class="item-page-main">
+        <div class="item-page-breadcrumb">Products › ${p.brand} › ${p.name.split(',')[0]}</div>
+        <div class="item-page-name">${p.name}</div>
+        <div class="item-page-ids">
+          <span>Item # <span>${p.sku}</span></span>
+          <span>CMIR # <span>${p.cmir||'—'}</span></span>
+          <span>Brand <span>${p.brand}</span></span>
+        </div>
+        <div class="item-spec-grid">
+          <div class="item-spec-cell"><div class="item-spec-label">Availability</div>
+            <div class="item-spec-val" style="color:${av.dot}">${p.av==='in'?'In Stock':p.av==='low'?'Limited Availability':'Out of Stock'}</div></div>
+          <div class="item-spec-cell"><div class="item-spec-label">Unit of Measure</div>
+            <div class="item-spec-val">${(p.units||['1/EA'])[0]}</div></div>
+          <div class="item-spec-cell"><div class="item-spec-label">Pack Options</div>
+            <div class="item-spec-val">${(p.units||['1/EA']).join(', ')}</div></div>
+          <div class="item-spec-cell"><div class="item-spec-label">Material</div>
+            <div class="item-spec-val">${p.name.toLowerCase().includes('nitrile')?'Nitrile':p.name.toLowerCase().includes('latex')?'Latex':p.name.toLowerCase().includes('silicone')?'Silicone':'Standard'}</div></div>
+          <div class="item-spec-cell"><div class="item-spec-label">Category</div>
+            <div class="item-spec-val">${p.name.toLowerCase().includes('glove')?'Gloves & PPE':p.name.toLowerCase().includes('brief')?'Incontinence':p.name.toLowerCase().includes('catheter')||p.name.toLowerCase().includes('foley')?'Catheters':p.name.toLowerCase().includes('mask')||p.name.toLowerCase().includes('n95')?'Respiratory':'Medical Supplies'}</div></div>
+          <div class="item-spec-cell"><div class="item-spec-label">Price per Unit</div>
+            <div class="item-spec-val">${p.price}</div></div>
+        </div>
+        <div class="item-page-price-row">
+          <div class="item-page-price">${p.price}</div>
+          <div class="item-page-price-unit">per ${(p.units||['EA'])[0]}</div>
+        </div>
+        <div class="item-page-actions">
+          <div class="qty-ctrl" role="group" aria-label="Quantity" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;">
+            <button class="qty-btn" style="width:32px;height:38px;border:none;background:var(--surface-2);cursor:pointer;font-size:16px;" onclick="const v=this.nextElementSibling;v.value=Math.max(1,+v.value-1)">−</button>
+            <input class="qty-val" type="number" value="1" min="1" style="width:48px;height:38px;border:none;text-align:center;font-size:13px;font-weight:600;" aria-label="Quantity"/>
+            <button class="qty-btn" style="width:32px;height:38px;border:none;background:var(--surface-2);cursor:pointer;font-size:16px;" onclick="const v=this.previousElementSibling;v.value=+v.value+1">+</button>
+          </div>
+          <button class="item-add-btn" onclick="this.textContent='✓ Added';this.style.background='#006644';setTimeout(()=>{this.textContent='Add To Order';this.style.background='';},2000)">Add To Order</button>
+          <button class="item-compare-btn" onclick="renderComparables('${p.sku}')">Compare Alternatives</button>
+        </div>
+      </div>
+    </div>
+    <div class="item-page-tabs">
+      <div class="item-page-tab active">Related Documents</div>
+      <div class="item-page-tab">Specifications</div>
+      <div class="item-page-tab">Similar Products</div>
+    </div>
+    <div class="item-page-tab-body">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${relDocs.map(d=>`
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div style="width:32px;height:32px;background:var(--primary-dim);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:500;color:var(--t1);">${d.title}</div>
+              <div style="font-size:10px;font-family:var(--mono);color:var(--t3);margin-top:2px;">${d.type} · Updated ${d.upd}</div>
+            </div>
+            <button class="doc-dl-btn">Download</button>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+  disambigEl.classList.remove('open');
+}
+
+// ============================================================
+// NEW RENDERER — Comparable Items (from exact match)
+// ============================================================
+function renderComparables(sku) {
+  const base = PRODUCTS.find(p => p.sku.toLowerCase() === (sku||'').toLowerCase()) || PRODUCTS[0];
+  // Find similar products (same category heuristic)
+  const category = base.name.toLowerCase().includes('glove') ? 'glove'
+    : base.name.toLowerCase().includes('brief') ? 'brief'
+    : base.name.toLowerCase().includes('catheter') || base.name.toLowerCase().includes('foley') ? 'catheter'
+    : base.name.toLowerCase().includes('mask') || base.name.toLowerCase().includes('n95') ? 'mask'
+    : null;
+  let comparables = category
+    ? PRODUCTS.filter(p => p.sku !== base.sku && p.name.toLowerCase().includes(category)).slice(0,3)
+    : PRODUCTS.filter(p => p.sku !== base.sku).slice(0,3);
+  if (!comparables.length) comparables = PRODUCTS.filter(p => p.sku !== base.sku).slice(0,3);
+  const allProds = [base, ...comparables];
+
+  const specRows = [
+    { label:'Brand',        fn: p => p.brand },
+    { label:'Price',        fn: p => `<strong>${p.price}</strong>` },
+    { label:'Availability', fn: p => { const av=availStyle(p.av); return `<span style="color:${av.dot};font-weight:500">${p.av==='in'?'In Stock':p.av==='low'?'Low Stock':'Out of Stock'}</span>`; } },
+    { label:'Unit Options', fn: p => (p.units||['1/EA']).join(', ') },
+    { label:'Material',     fn: p => p.name.toLowerCase().includes('nitrile')?'Nitrile':p.name.toLowerCase().includes('latex')?'Latex':p.name.toLowerCase().includes('silicone')?'Silicone':'Standard' },
+    { label:'Colors',       fn: p => `${(p.colors||[]).length + (p.extra||0)} options` },
+    { label:'SKU',          fn: p => `<span style="font-family:var(--mono);font-size:10px;">${p.sku}</span>` },
+  ];
+
+  const colCount = allProds.length;
+  const gridCols = `140px repeat(${colCount}, 1fr)`;
+
+  resultsEl.innerHTML = `
+  <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+    <button onclick="renderItemPage('${base.sku}')" style="font-size:11px;font-family:var(--mono);color:var(--t3);background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to ${base.sku}
+    </button>
+    <span style="font-size:11px;font-family:var(--mono);color:var(--t3);">Comparing ${colCount} products</span>
+  </div>
+  <div class="compare-page">
+    <div class="compare-page-hdr">
+      <div>
+        <div class="compare-page-title">Product Comparison</div>
+        <div class="compare-page-sub">Similar products to ${base.name.split(',')[0]}</div>
+      </div>
+    </div>
+    <div class="compare-grid" style="display:grid;">
+      <!-- Header row -->
+      <div class="compare-row" style="grid-template-columns:${gridCols};background:var(--surface-2);">
+        <div class="compare-row-label" style="background:var(--surface-2);border-bottom:1px solid var(--border);">Product</div>
+        ${allProds.map((p,i)=>`
+          <div class="compare-prod-header" style="border-bottom:1px solid var(--border);${i===0?'background:#e3fcef;':''}" >
+            ${i===0?'<div style="font-size:9px;font-family:var(--mono);font-weight:700;color:#006644;margin-bottom:6px;">YOUR ITEM</div>':''}
+            <div class="compare-prod-img">${prodImg(p.name)}</div>
+            <div class="compare-prod-name">${p.name.split(',')[0]}</div>
+            <div class="compare-prod-sku">${p.sku}</div>
+            <div class="compare-prod-price">${p.price}</div>
+            <button class="compare-add-btn">Add To Order</button>
+          </div>`).join('')}
+      </div>
+      <!-- Spec rows -->
+      ${specRows.map(row=>`
+        <div class="compare-row" style="grid-template-columns:${gridCols};">
+          <div class="compare-row-label">${row.label}</div>
+          ${allProds.map((p,i)=>`<div class="compare-row-val${i===0?' winner':''}">${row.fn(p)}</div>`).join('')}
+        </div>`).join('')}
+    </div>
+  </div>`;
+  disambigEl.classList.remove('open');
+}
+
+// ============================================================
+// NEW RENDERER — SKU vs SKU Direct Comparison
+// ============================================================
+function renderSkuCompare(r, q) {
+  const [s1, s2] = r.skus || [];
+  const p1 = r.products?.[0] || PRODUCTS.find(p => p.sku.toLowerCase() === s1?.toLowerCase()) || PRODUCTS[0];
+  const p2 = r.products?.[1] || PRODUCTS.find(p => p.sku.toLowerCase() === s2?.toLowerCase()) || PRODUCTS[1];
+  const allProds = [p1, p2];
+
+  const specRows = [
+    { label:'Brand',        fn: p => p.brand },
+    { label:'Price / Unit', fn: p => `<strong>${p.price}</strong>` },
+    { label:'Availability', fn: p => { const av=availStyle(p.av); return `<span style="color:${av.dot};font-weight:500">${p.av==='in'?'In Stock':p.av==='low'?'Low Stock':'Out of Stock'}</span>`; } },
+    { label:'Pack Options', fn: p => (p.units||['1/EA']).join(', ') },
+    { label:'Material',     fn: p => p.name.toLowerCase().includes('nitrile')?'Nitrile':p.name.toLowerCase().includes('latex')?'Latex':p.name.toLowerCase().includes('silicone')?'Silicone':'Standard' },
+    { label:'Color Variants',fn: p => `${(p.colors||[]).length + (p.extra||0)} options` },
+    { label:'SKU',          fn: p => `<span style="font-family:var(--mono);font-size:10px;">${p.sku}</span>` },
+    { label:'CMIR #',       fn: p => `<span style="font-family:var(--mono);font-size:10px;">${p.cmir||'—'}</span>` },
+  ];
+
+  resultsEl.innerHTML = `
+  <div class="compare-page">
+    <div class="compare-page-hdr">
+      <div>
+        <div class="compare-page-title">${s1||p1.sku} vs ${s2||p2.sku}</div>
+        <div class="compare-page-sub">Direct specification comparison</div>
+      </div>
+      <button onclick="setQ('${ea(q)}')" style="font-size:11px;font-family:var(--mono);color:var(--t3);background:none;border:none;cursor:pointer;">Search again</button>
+    </div>
+    <div class="compare-grid">
+      <div class="compare-row" style="grid-template-columns:140px 1fr 1fr;background:var(--surface-2);">
+        <div class="compare-row-label" style="background:var(--surface-2);border-bottom:1px solid var(--border);">Product</div>
+        ${allProds.map(p=>`
+          <div class="compare-prod-header" style="border-bottom:1px solid var(--border);">
+            <div class="compare-prod-img">${prodImg(p.name)}</div>
+            <div class="compare-prod-name">${p.name}</div>
+            <div class="compare-prod-sku">${p.sku}</div>
+            <div class="compare-prod-price">${p.price} <span style="font-size:10px;color:var(--t3);font-family:var(--mono)">/ ${(p.units||['EA'])[0]}</span></div>
+            <button class="compare-add-btn">Add To Order</button>
+          </div>`).join('')}
+      </div>
+      ${specRows.map(row=>`
+        <div class="compare-row" style="grid-template-columns:140px 1fr 1fr;">
+          <div class="compare-row-label">${row.label}</div>
+          ${allProds.map(p=>`<div class="compare-row-val">${row.fn(p)}</div>`).join('')}
+        </div>`).join('')}
+    </div>
+  </div>`;
+  disambigEl.classList.remove('open');
+}
+
+// ============================================================
+// NEW RENDERER — Feature Navigation Redirect
+// ============================================================
+function renderFeatureRedirect(feature, q) {
+  if (!feature) return;
+  const featureDescriptions = {
+    'shopping-list':   'Create, manage and submit draft orders. Add products as you browse, set quantities, and send for approval when ready.',
+    'order-dashboard': 'View all your past and in-progress orders. Reorder with one click, track shipments, and download invoices.',
+    'account':         'Manage your profile, update your password, set notification preferences, and view your purchasing permissions.',
+    'formulary':       'Browse and search your facility\'s approved product list. Items outside the formulary require separate approval.',
+    'reports':         'Download monthly spend reports, usage analytics by category, and cost-per-unit trends over time.',
+    'analytics':       'Visualise spend trends, identify cost-saving opportunities, and benchmark utilization across departments.',
+    'favorites':       'Your starred products appear here for quick reordering. Add any product to Favorites from its product card.',
+    'users':           'Add new users, assign purchasing roles, set spending limits, and deactivate accounts.',
+    'locations':       'Manage your facility\'s delivery addresses and contact details for each site.',
+  };
+  const related = FEATURE_RELATED[feature.page] || [];
+  const desc = featureDescriptions[feature.page] || 'Access this feature from your account menu.';
+
+  resultsEl.innerHTML = `
+  <div class="feature-redirect">
+    <div class="feature-redirect-hero">
+      <div class="feature-redirect-icon">${feature.icon}</div>
+      <div class="feature-redirect-heading">
+        <div class="feature-redirect-label">Feature Navigation</div>
+        <div class="feature-redirect-title">${feature.label}</div>
+        <div class="feature-redirect-sub">${feature.desc}</div>
+      </div>
+    </div>
+    <div class="feature-redirect-body">
+      <div class="feature-redirect-desc">${desc}</div>
+      <button class="feature-redirect-cta" onclick="this.textContent='Opening…'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open ${feature.label}
+      </button>
+      ${related.length ? `
+      <div class="feature-redirect-links">
+        <div class="feature-redirect-links-title">Related features</div>
+        <div class="feature-redirect-link-grid">
+          ${related.map(l=>`
+            <div class="feature-redirect-link">
+              <div class="feature-redirect-link-icon">${l.icon}</div>
+              <div class="feature-redirect-link-name">${l.name}</div>
+              <div class="feature-redirect-link-desc">${l.desc}</div>
+            </div>`).join('')}
+        </div>
+      </div>` : ''}
+    </div>
+  </div>`;
+  disambigEl.classList.remove('open');
+}
+
+// ============================================================
+// NEW RENDERER — Order Details Page
+// ============================================================
+function renderOrderDetails(orderNum, q) {
+  // Find mock order or generate one
+  const orderKey = Object.keys(MOCK_ORDERS).find(k => k.toUpperCase().includes((orderNum||'').toUpperCase())) || Object.keys(MOCK_ORDERS)[0];
+  const order = MOCK_ORDERS[orderKey];
+  const statusColors = { Fulfilled:'var(--success)', Processing:'var(--warning)', Cancelled:'var(--danger)' };
+  const statusBgs    = { Fulfilled:'var(--success-bg)', Processing:'var(--warning-bg)', Cancelled:'var(--danger-bg)' };
+
+  resultsEl.innerHTML = `
+  <div class="order-page">
+    <div class="order-page-hdr">
+      <div>
+        <div class="order-num">${order.num}</div>
+        <div class="order-meta">
+          <div class="order-meta-item">Date <span>${order.date}</span></div>
+          <div class="order-meta-item">Items <span>${order.lines.length}</span></div>
+          <div class="order-meta-item">Shipped to <span>${order.ship.to.split('—')[0].trim()}</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
+        <div class="order-status-badge" style="background:${statusBgs[order.status]};color:${statusColors[order.status]};">
+          ● ${order.status}
+        </div>
+        <div style="font-size:18px;font-weight:700;color:var(--t1);">${order.total}</div>
+      </div>
+    </div>
+
+    <div class="order-body">
+      <div class="order-section-hdr">
+        <span>Line Items (${order.lines.length})</span>
+        <span style="font-family:var(--mono);font-size:10px;">QTY · UNIT PRICE · TOTAL</span>
+      </div>
+      ${order.lines.map(l=>{
+        const prod = PRODUCTS.find(p=>p.sku===l.sku)||null;
+        return `<div class="order-line-grid">
+          <div class="order-line-img">${prod?prodImg(prod.name):PROD_IMG.default}</div>
+          <div>
+            <div class="order-line-name">${l.name}</div>
+            <div class="order-line-sku">${l.sku}</div>
+          </div>
+          <div class="order-line-val">${l.qty} ${l.unit}</div>
+          <div class="order-line-val">${l.price}</div>
+          <div class="order-line-total">${l.total}</div>
+        </div>`;}).join('')}
+
+      <div class="order-shipping">
+        <div class="order-ship-block">
+          <div class="order-ship-label">Deliver To</div>
+          <div class="order-ship-val">${order.ship.to.replace('—','<br>')}</div>
+        </div>
+        <div class="order-ship-block">
+          <div class="order-ship-label">Estimated Delivery</div>
+          <div class="order-ship-val">${order.ship.est}</div>
+        </div>
+        <div class="order-ship-block">
+          <div class="order-ship-label">Tracking Number</div>
+          <div class="order-ship-val" style="font-family:var(--mono);font-size:11px;">${order.ship.track}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="order-footer">
+      <div class="order-footer-total">Order Total: ${order.total}</div>
+      <div class="order-footer-actions">
+        <button class="order-action-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Invoice
+        </button>
+        <button class="order-action-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Packing Slip
+        </button>
+        <button class="order-action-btn primary" onclick="this.textContent='✓ Added to Cart';this.style.background='#006644'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          Reorder All
+        </button>
+      </div>
+    </div>
+  </div>`;
+  disambigEl.classList.remove('open');
+}
+
+function toggleTests(){
+  const g=document.getElementById('tgrid');
+  const c=document.getElementById('tchev');
+  const h=document.querySelector('.tpanel-hdr');
+  const isHidden=g.classList.contains('hidden');
+  if(isHidden){
+    g.classList.remove('hidden');
+    c.style.transform='rotate(180deg)';
+    h.setAttribute('aria-expanded','true');
+    g.innerHTML=TESTS.map((t,i)=>`
+      <div class="tq" onclick="setQ('${ea(t.q)}')" tabindex="0" role="listitem"
+           onkeydown="if(event.key==='Enter')setQ('${ea(t.q)}')"
+           aria-label="Test query: ${t.q}">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="tq-num">#${String(i+1).padStart(2,'0')}</span>
+          <span class="tq-exp">${t.ex}</span>
+        </div>
+        <div class="tq-text">${t.q}</div>
+        <div class="tq-exp">${t.n}</div>
+      </div>`).join('');
+  } else {
+    g.classList.add('hidden');
+    c.style.transform='rotate(0deg)';
+    h.setAttribute('aria-expanded','false');
+  }
+}
+</script>
+</body>
+</html>
