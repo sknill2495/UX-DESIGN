@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Studio</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --surface: #ffffff; --surface-2: #efede8; --text: #1c1b19; --muted: #6b6862;
+    --border: #dedbd4; --accent: #3b5bdb; --accent-ink: #ffffff; --danger: #c92a2a; --ok: #2b8a3e;
+    --radius: 12px; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --surface: #1d1c1a; --surface-2: #272522; --text: #ecebe8; --muted: #a09c94;
+      --border: #34322e; --accent: #748ffc; --accent-ink: #10121a; --danger: #ff6b6b; --ok: #69db7c;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141413; --surface: #1d1c1a; --surface-2: #272522; --text: #ecebe8; --muted: #a09c94;
+    --border: #34322e; --accent: #748ffc; --accent-ink: #10121a; --danger: #ff6b6b; --ok: #69db7c;
+    --shadow: none;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 920px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  h1 { font-size: 24px; margin: 0; letter-spacing: -.01em; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 10px; margin-bottom: 16px; width: fit-content; }
+  .tab { border: 0; background: transparent; color: var(--muted); padding: 8px 14px; border-radius: 7px; font: inherit; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  textarea, input[type=text], input[type=password], select {
+    width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; }
+  textarea { min-height: 150px; resize: vertical; }
+  textarea:focus, input:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 0 0 6px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .between { justify-content: space-between; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+  .voice { text-align: left; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 10px;
+    padding: 12px; cursor: pointer; font: inherit; display: flex; flex-direction: column; gap: 2px; position: relative; }
+  .voice[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .voice b { font-size: 14px; }
+  .voice span { font-size: 12px; color: var(--muted); }
+  .voice .tag { position: absolute; top: 10px; right: 10px; font-size: 10px; text-transform: uppercase; letter-spacing: .05em;
+    background: var(--surface-2); color: var(--muted); padding: 2px 6px; border-radius: 4px; }
+  .sample { margin-top: 6px; align-self: flex-start; font-size: 12px; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; }
+  .sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .btn { font: inherit; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 9px 16px;
+    border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .btn.danger { color: var(--danger); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .status { font-size: 13px; color: var(--muted); min-height: 20px; }
+  .status.err { color: var(--danger); } .status.ok { color: var(--ok); }
+  .notice { background: var(--surface-2); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .notice strong { color: var(--text); }
+  .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); display: inline-block; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  audio { width: 100%; margin-top: 10px; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--text); margin: 12px 0; }
+  .check input { margin-top: 3px; }
+  .hidden { display: none !important; }
+  .count { font-size: 12px; color: var(--muted); }
+  .list-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border); }
+  .list-item:first-child { border-top: 0; }
+  .empty { color: var(--muted); font-size: 13px; }
+  @media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Voice Studio</h1>
+      <div class="sub">Type text, pick a voice style, hear it. Clone a voice from a consented sample.</div>
+    </div>
+    <button class="btn" id="themeBtn" type="button" aria-label="Toggle theme">Theme</button>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="speak">Speak</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="clone">Clone a voice</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="settings">Settings</button>
+  </div>
+
+  <!-- SPEAK -->
+  <section id="tab-speak">
+    <div class="card">
+      <div class="row between"><label for="text">Text</label><span class="count" id="count">0 chars</span></div>
+      <textarea id="text" maxlength="5000">Hello! This is Voice Studio. Pick a style below and press Speak to hear how I sound.</textarea>
+    </div>
+
+    <div class="card">
+      <div class="row between"><h2>Voice styles</h2><span class="sub">Built-in styles run free in your browser</span></div>
+      <div class="grid" id="styleGrid"></div>
+
+      <div id="builtinControls">
+        <div class="sliders">
+          <div><label for="baseVoice">Base system voice</label><select id="baseVoice"></select></div>
+          <div><label for="rate">Speed <span id="rateVal"></span></label><input id="rate" type="range" min="0.5" max="2" step="0.05"></div>
+          <div><label for="pitch">Pitch <span id="pitchVal"></span></label><input id="pitch" type="range" min="0" max="2" step="0.05"></div>
+          <div><label for="volume">Volume <span id="volVal"></span></label><input id="volume" type="range" min="0" max="1" step="0.05"></div>
+        </div>
+      </div>
+
+      <div id="cloneControls" class="hidden">
+        <div class="sliders">
+          <div><label for="stability">Stability <span id="stabVal"></span></label><input id="stability" type="range" min="0" max="1" step="0.05" value="0.5"></div>
+          <div><label for="similarity">Similarity <span id="simVal"></span></label><input id="similarity" type="range" min="0" max="1" step="0.05" value="0.75"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <button class="btn primary" id="speakBtn" type="button">Speak</button>
+        <button class="btn" id="pauseBtn" type="button">Pause</button>
+        <button class="btn" id="stopBtn" type="button">Stop</button>
+        <a class="btn hidden" id="downloadBtn" download="speech.mp3">Download MP3</a>
+      </div>
+      <div class="status" id="speakStatus" role="status" aria-live="polite"></div>
+      <audio id="player" controls class="hidden"></audio>
+    </div>
+  </section>
+
+  <!-- CLONE -->
+  <section id="tab-clone" class="hidden">
+    <div class="notice">
+      <strong>How cloning works.</strong> Browsers cannot clone voices on their own. This tab sends your sample to the
+      ElevenLabs Instant Voice Cloning API using your own API key (set it in Settings). Use 1–3 minutes of clean speech,
+      one speaker, no music. <strong>Only clone your own voice or a voice you have written permission to use.</strong>
+    </div>
+
+    <div class="card">
+      <h2>1. Provide a sample</h2>
+      <div class="row">
+        <button class="btn" id="recBtn" type="button">Record from mic</button>
+        <label class="btn" for="fileIn" style="margin:0;color:var(--text)">Upload audio files</label>
+        <input id="fileIn" type="file" accept="audio/*" multiple class="hidden">
+        <span id="recIndicator" class="hidden row" style="gap:6px"><span class="rec-dot"></span><span id="recTime">0:00</span></span>
+      </div>
+      <p class="sub" style="margin:10px 0 0">Suggested script to read: “The quick brown fox jumps over the lazy dog. I'm recording this sample so my
+        voice can be used for text to speech. Numbers like 1, 25 and 300 should sound natural, and so should questions — right?”</p>
+      <div id="sampleList" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2>2. Name and confirm</h2>
+      <label for="cloneName">Voice name</label>
+      <input id="cloneName" type="text" placeholder="e.g. My narrator voice" maxlength="60">
+      <label for="cloneDesc" style="margin-top:12px">Description (optional)</label>
+      <input id="cloneDesc" type="text" placeholder="e.g. warm, mid-pitch, Indian English" maxlength="200">
+      <div class="check">
+        <input id="consent" type="checkbox">
+        <label for="consent" style="margin:0;color:var(--text)">I confirm this is my own voice, or I have the speaker's explicit permission to clone it,
+          and I will not use it to impersonate or deceive anyone.</label>
+      </div>
+      <button class="btn primary" id="cloneBtn" type="button" disabled>Create voice clone</button>
+      <div class="status" id="cloneStatus" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="card">
+      <div class="row between"><h2 style="margin:0">Your cloned voices</h2><button class="btn" id="syncBtn" type="button">Sync from account</button></div>
+      <div id="clonedList" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="tab-settings" class="hidden">
+    <div class="card">
+      <h2>ElevenLabs API key</h2>
+      <p class="sub" style="margin-top:0">Needed only for cloning and cloned-voice playback. Stored in this browser's localStorage; it is sent only to api.elevenlabs.io.
+        Don't use this on a shared computer.</p>
+      <label for="apiKey">API key</label>
+      <input id="apiKey" type="password" autocomplete="off" placeholder="xi-...">
+      <label for="modelId" style="margin-top:12px">Model</label>
+      <select id="modelId">
+        <option value="eleven_multilingual_v2">eleven_multilingual_v2 (quality)</option>
+        <option value="eleven_turbo_v2_5">eleven_turbo_v2_5 (fast)</option>
+        <option value="eleven_flash_v2_5">eleven_flash_v2_5 (fastest)</option>
+      </select>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="saveKey" type="button">Save</button>
+        <button class="btn" id="testKey" type="button">Test key</button>
+        <button class="btn danger" id="clearKey" type="button">Clear</button>
+      </div>
+      <div class="status" id="keyStatus" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const API = 'https://api.elevenlabs.io/v1';
+  const SAMPLE_LINE = 'Hi there. This is a quick sample of how this voice sounds.';
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+
+  // ---------- Theme ----------
+  const root = document.documentElement;
+  const savedTheme = store.get('vs.theme', null);
+  if (savedTheme) root.dataset.theme = savedTheme;
+  $('#themeBtn').onclick = () => {
+    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    store.set('vs.theme', root.dataset.theme);
+  };
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab').forEach((t) => t.onclick = () => {
+    document.querySelectorAll('.tab').forEach((x) => x.setAttribute('aria-selected', x === t));
+    ['speak', 'clone', 'settings'].forEach((n) => $('#tab-' + n).classList.toggle('hidden', n !== t.dataset.tab));
+  });
+
+  // ---------- Built-in styles (Web Speech API) ----------
+  // Each style biases rate/pitch and prefers a system voice matching `prefer`.
+  const STYLES = [
+    { id: 'default',   name: 'Default',    desc: 'Neutral, everyday',  rate: 1.0,  pitch: 1.0,  prefer: [] },
+    { id: 'narrator',  name: 'Narrator',   desc: 'Slow, deep, steady', rate: 0.9, pitch: 0.8,  prefer: ['daniel', 'george', 'male', 'david', 'guy'] },
+    { id: 'cheerful',  name: 'Cheerful',   desc: 'Bright and quick',   rate: 1.12, pitch: 1.35, prefer: ['samantha', 'female', 'zira', 'aria', 'jenny'] },
+    { id: 'calm',      name: 'Calm',       desc: 'Soft and relaxed',   rate: 0.82, pitch: 0.95, prefer: ['karen', 'moira', 'female', 'libby'] },
+    { id: 'news',      name: 'Newsreader', desc: 'Crisp and formal',   rate: 1.05, pitch: 0.9,  prefer: ['google uk english male', 'arthur', 'ryan'] },
+    { id: 'storyteller', name: 'Storyteller', desc: 'Warm, expressive', rate: 0.92, pitch: 1.15, prefer: ['tessa', 'serena', 'sonia'] },
+    { id: 'robot',     name: 'Robot',      desc: 'Flat, synthetic',    rate: 0.95, pitch: 0.1,  prefer: ['fred', 'zarvox', 'trinoids'] },
+    { id: 'chipmunk',  name: 'Chipmunk',   desc: 'Fast and high',      rate: 1.45, pitch: 2.0,  prefer: [] },
+  ];
+
+  const synth = window.speechSynthesis;
+  let sysVoices = [];
+  let selected = { kind: 'builtin', id: 'default' };
+  const params = { rate: 1, pitch: 1, volume: 1, voiceURI: '' };
+
+  function loadSysVoices() {
+    if (!synth) return;
+    sysVoices = synth.getVoices();
+    const sel = $('#baseVoice');
+    sel.innerHTML = '';
+    if (!sysVoices.length) { sel.innerHTML = '<option value="">System default</option>'; return; }
+    sysVoices.forEach((v) => {
+      const o = document.createElement('option');
+      o.value = v.voiceURI; o.textContent = `${v.name} (${v.lang})${v.default ? ' — default' : ''}`;
+      sel.appendChild(o);
+    });
+    if (selected.kind === 'builtin') applyStyle(selected.id);
+  }
+  if (synth) { loadSysVoices(); synth.onvoiceschanged = loadSysVoices; }
+
+  function pickVoiceFor(style) {
+    const lang = (navigator.language || 'en').slice(0, 2);
+    const pool = sysVoices.filter((v) => v.lang.toLowerCase().startsWith(lang));
+    const list = pool.length ? pool : sysVoices;
+    for (const p of style.prefer) {
+      const hit = list.find((v) => v.name.toLowerCase().includes(p));
+      if (hit) return hit;
+    }
+    return list.find((v) => v.default) || list[0];
+  }
+
+  function applyStyle(id) {
+    const s = STYLES.find((x) => x.id === id);
+    Object.assign(params, { rate: s.rate, pitch: s.pitch });
+    const v = pickVoiceFor(s);
+    params.voiceURI = v ? v.voiceURI : '';
+    syncSliders();
+  }
+
+  function syncSliders() {
+    $('#rate').value = params.rate; $('#pitch').value = params.pitch; $('#volume').value = params.volume;
+    $('#rateVal').textContent = params.rate.toFixed(2) + '×';
+    $('#pitchVal').textContent = params.pitch.toFixed(2);
+    $('#volVal').textContent = Math.round(params.volume * 100) + '%';
+    if (params.voiceURI) $('#baseVoice').value = params.voiceURI;
+  }
+  ['rate', 'pitch', 'volume'].forEach((k) => $('#' + k).oninput = (e) => { params[k] = +e.target.value; syncSliders(); });
+  $('#baseVoice').onchange = (e) => params.voiceURI = e.target.value;
+  $('#stability').oninput = (e) => $('#stabVal').textContent = (+e.target.value).toFixed(2);
+  $('#similarity').oninput = (e) => $('#simVal').textContent = (+e.target.value).toFixed(2);
+  $('#stability').oninput({ target: $('#stability') }); $('#similarity').oninput({ target: $('#similarity') });
+
+  function speakBuiltin(text, overrides) {
+    if (!synth) return setStatus('#speakStatus', 'This browser does not support speech synthesis.', 'err');
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const p = Object.assign({}, params, overrides || {});
+    const v = sysVoices.find((x) => x.voiceURI === p.voiceURI);
+    if (v) { u.voice = v; u.lang = v.lang; }
+    u.rate = p.rate; u.pitch = p.pitch; u.volume = p.volume;
+    u.onstart = () => setStatus('#speakStatus', 'Speaking…');
+    u.onend = () => setStatus('#speakStatus', 'Done.', 'ok');
+    u.onerror = (e) => { if (e.error !== 'interrupted' && e.error !== 'canceled') setStatus('#speakStatus', 'Speech error: ' + e.error, 'err'); };
+    synth.speak(u);
+  }
+
+  // ---------- Cloned voices (ElevenLabs) ----------
+  let cloned = store.get('vs.cloned', []);
+  const saveCloned = () => store.set('vs.cloned', cloned);
+  const apiKey = () => store.get('vs.key', '');
+  let lastUrl = null;
+
+  async function el(path, opts = {}) {
+    const key = apiKey();
+    if (!key) throw new Error('Add your ElevenLabs API key in Settings first.');
+    const res = await fetch(API + path, { ...opts, headers: { 'xi-api-key': key, ...(opts.headers || {}) } });
+    if (!res.ok) {
+      let msg = res.status + ' ' + res.statusText;
+      try { const j = await res.json(); msg = (j.detail && (j.detail.message || j.detail)) || msg; } catch {}
+      throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    }
+    return res;
+  }
+
+  async function speakCloned(voiceId, text) {
+    setStatus('#speakStatus', 'Generating audio…');
+    $('#speakBtn').disabled = true;
+    try {
+      const res = await el(`/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
+        body: JSON.stringify({
+          text,
+          model_id: store.get('vs.model', 'eleven_multilingual_v2'),
+          voice_settings: { stability: +$('#stability').value, similarity_boost: +$('#similarity').value },
+        }),
+      });
+      const blob = await res.blob();
+      if (lastUrl) URL.revokeObjectURL(lastUrl);
+      lastUrl = URL.createObjectURL(blob);
+      const player = $('#player');
+      player.src = lastUrl; player.classList.remove('hidden');
+      $('#downloadBtn').href = lastUrl; $('#downloadBtn').classList.remove('hidden');
+      await player.play().catch(() => {});
+      setStatus('#speakStatus', 'Ready.', 'ok');
+    } catch (e) {
+      setStatus('#speakStatus', e.message, 'err');
+    } finally { $('#speakBtn').disabled = false; }
+  }
+
+  // ---------- Voice grid ----------
+  function renderGrid() {
+    const g = $('#styleGrid');
+    g.innerHTML = '';
+    const card = (kind, id, name, desc, tag) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'voice';
+      b.setAttribute('aria-pressed', selected.kind === kind && selected.id === id);
+      b.innerHTML = `<b></b><span></span>${tag ? `<em class="tag">${tag}</em>` : ''}`;
+      b.querySelector('b').textContent = name;
+      b.querySelector('span').textContent = desc;
+      const s = document.createElement('span');
+      s.className = 'sample'; s.textContent = '▶ Play sample'; s.setAttribute('role', 'button'); s.tabIndex = 0;
+      const play = (ev) => { ev.stopPropagation(); select(kind, id); sample(kind, id); };
+      s.onclick = play; s.onkeydown = (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); play(ev); } };
+      b.appendChild(s);
+      b.onclick = () => select(kind, id);
+      g.appendChild(b);
+    };
+    STYLES.forEach((s) => card('builtin', s.id, s.name, s.desc));
+    cloned.forEach((c) => card('clone', c.id, c.name, c.desc || 'Cloned voice', 'Clone'));
+  }
+
+  function select(kind, id) {
+    selected = { kind, id };
+    if (kind === 'builtin') applyStyle(id);
+    $('#builtinControls').classList.toggle('hidden', kind !== 'builtin');
+    $('#cloneControls').classList.toggle('hidden', kind !== 'clone');
+    renderGrid();
+  }
+
+  function sample(kind, id) {
+    if (kind === 'builtin') speakBuiltin(SAMPLE_LINE);
+    else speakCloned(id, SAMPLE_LINE);
+  }
+
+  // ---------- Speak controls ----------
+  const textEl = $('#text');
+  const updateCount = () => $('#count').textContent = textEl.value.length + ' chars';
+  textEl.oninput = updateCount; updateCount();
+  textEl.value = store.get('vs.text', textEl.value);
+  textEl.addEventListener('input', () => store.set('vs.text', textEl.value));
+  updateCount();
+
+  $('#speakBtn').onclick = () => {
+    const text = textEl.value.trim();
+    if (!text) return setStatus('#speakStatus', 'Type something first.', 'err');
+    if (selected.kind === 'builtin') speakBuiltin(text);
+    else speakCloned(selected.id, text);
+  };
+  $('#pauseBtn').onclick = () => {
+    const p = $('#player');
+    if (selected.kind === 'clone') { p.paused ? p.play() : p.pause(); return; }
+    if (!synth) return;
+    if (synth.paused) { synth.resume(); $('#pauseBtn').textContent = 'Pause'; }
+    else if (synth.speaking) { synth.pause(); $('#pauseBtn').textContent = 'Resume'; }
+  };
+  $('#stopBtn').onclick = () => {
+    if (synth) synth.cancel();
+    const p = $('#player'); p.pause(); p.currentTime = 0;
+    $('#pauseBtn').textContent = 'Pause';
+    setStatus('#speakStatus', 'Stopped.');
+  };
+
+  // ---------- Recording / uploads ----------
+  let samples = []; // {name, blob, url}
+  let recorder = null, recTimer = null;
+
+  function renderSamples() {
+    const box = $('#sampleList');
+    box.innerHTML = '';
+    if (!samples.length) { box.innerHTML = '<div class="empty">No samples yet.</div>'; }
+    samples.forEach((s, i) => {
+      const row = document.createElement('div'); row.className = 'list-item';
+      const left = document.createElement('div'); left.style.flex = '1'; left.style.minWidth = '0';
+      const nm = document.createElement('div'); nm.textContent = s.name; nm.style.fontSize = '13px';
+      const au = document.createElement('audio'); au.controls = true; au.src = s.url; au.style.marginTop = '4px';
+      left.append(nm, au);
+      const rm = document.createElement('button'); rm.className = 'btn danger'; rm.textContent = 'Remove'; rm.type = 'button';
+      rm.onclick = () => { URL.revokeObjectURL(s.url); samples.splice(i, 1); renderSamples(); };
+      row.append(left, rm); box.appendChild(row);
+    });
+    updateCloneBtn();
+  }
+
+  function addSample(blob, name) {
+    if (blob.size > 10 * 1024 * 1024) return setStatus('#cloneStatus', `${name} is over 10 MB; trim it.`, 'err');
+    samples.push({ blob, name, url: URL.createObjectURL(blob) });
+    renderSamples();
+  }
+
+  $('#fileIn').onchange = (e) => { [...e.target.files].forEach((f) => addSample(f, f.name)); e.target.value = ''; };
+
+  $('#recBtn').onclick = async () => {
+    if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      const chunks = [];
+      recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = (ev) => ev.data.size && chunks.push(ev.data);
+      recorder.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        clearInterval(recTimer);
+        $('#recIndicator').classList.add('hidden');
+        $('#recBtn').textContent = 'Record from mic';
+        const type = recorder.mimeType || 'audio/webm';
+        const ext = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
+        addSample(new Blob(chunks, { type }), `recording-${samples.length + 1}.${ext}`);
+      };
+      recorder.start();
+      const t0 = Date.now();
+      $('#recIndicator').classList.remove('hidden');
+      $('#recBtn').textContent = 'Stop recording';
+      recTimer = setInterval(() => {
+        const s = Math.floor((Date.now() - t0) / 1000);
+        $('#recTime').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+        if (s >= 300) recorder.stop();
+      }, 250);
+    } catch (e) {
+      setStatus('#cloneStatus', 'Microphone unavailable: ' + e.message, 'err');
+    }
+  };
+
+  function updateCloneBtn() {
+    $('#cloneBtn').disabled = !(samples.length && $('#consent').checked && $('#cloneName').value.trim());
+  }
+  $('#consent').onchange = updateCloneBtn;
+  $('#cloneName').oninput = updateCloneBtn;
+
+  $('#cloneBtn').onclick = async () => {
+    const fd = new FormData();
+    fd.append('name', $('#cloneName').value.trim());
+    if ($('#cloneDesc').value.trim()) fd.append('description', $('#cloneDesc').value.trim());
+    fd.append('remove_background_noise', 'true');
+    samples.forEach((s) => fd.append('files', s.blob, s.name));
+    $('#cloneBtn').disabled = true;
+    setStatus('#cloneStatus', 'Uploading samples and creating clone…');
+    try {
+      const res = await el('/voices/add', { method: 'POST', body: fd });
+      const { voice_id } = await res.json();
+      cloned.push({ id: voice_id, name: $('#cloneName').value.trim(), desc: $('#cloneDesc').value.trim() });
+      saveCloned(); renderCloned(); renderGrid();
+      setStatus('#cloneStatus', 'Voice created. It now appears under Voice styles on the Speak tab.', 'ok');
+      samples.forEach((s) => URL.revokeObjectURL(s.url)); samples = []; renderSamples();
+      $('#cloneName').value = ''; $('#cloneDesc').value = ''; $('#consent').checked = false;
+    } catch (e) {
+      setStatus('#cloneStatus', e.message, 'err');
+    } finally { updateCloneBtn(); }
+  };
+
+  function renderCloned() {
+    const box = $('#clonedList');
+    box.innerHTML = '';
+    if (!cloned.length) { box.innerHTML = '<div class="empty">None yet.</div>'; return; }
+    cloned.forEach((c) => {
+      const row = document.createElement('div'); row.className = 'list-item';
+      const nm = document.createElement('div'); nm.textContent = c.name;
+      const actions = document.createElement('div'); actions.className = 'row'; actions.style.gap = '8px';
+      const use = document.createElement('button'); use.className = 'btn'; use.type = 'button'; use.textContent = 'Use';
+      use.onclick = () => { select('clone', c.id); document.querySelector('[data-tab="speak"]').click(); };
+      const del = document.createElement('button'); del.className = 'btn danger'; del.type = 'button'; del.textContent = 'Delete';
+      del.onclick = async () => {
+        if (!confirm(`Delete "${c.name}" from your ElevenLabs account?`)) return;
+        try {
+          await el(`/voices/${encodeURIComponent(c.id)}`, { method: 'DELETE' });
+        } catch (e) { if (!/not.?found|404/i.test(e.message)) return setStatus('#cloneStatus', e.message, 'err'); }
+        cloned = cloned.filter((x) => x.id !== c.id); saveCloned();
+        if (selected.id === c.id) select('builtin', 'default');
+        renderCloned(); renderGrid();
+      };
+      actions.append(use, del); row.append(nm, actions); box.appendChild(row);
+    });
+  }
+
+  $('#syncBtn').onclick = async () => {
+    setStatus('#cloneStatus', 'Fetching voices…');
+    try {
+      const res = await el('/voices');
+      const { voices } = await res.json();
+      cloned = voices.filter((v) => v.category === 'cloned')
+        .map((v) => ({ id: v.voice_id, name: v.name, desc: v.description || '' }));
+      saveCloned(); renderCloned(); renderGrid();
+      setStatus('#cloneStatus', `Found ${cloned.length} cloned voice(s).`, 'ok');
+    } catch (e) { setStatus('#cloneStatus', e.message, 'err'); }
+  };
+
+  // ---------- Settings ----------
+  $('#apiKey').value = apiKey();
+  $('#modelId').value = store.get('vs.model', 'eleven_multilingual_v2');
+  $('#modelId').onchange = (e) => store.set('vs.model', e.target.value);
+  $('#saveKey').onclick = () => { store.set('vs.key', $('#apiKey').value.trim()); setStatus('#keyStatus', 'Saved.', 'ok'); };
+  $('#clearKey').onclick = () => { store.del('vs.key'); $('#apiKey').value = ''; setStatus('#keyStatus', 'Cleared.'); };
+  $('#testKey').onclick = async () => {
+    store.set('vs.key', $('#apiKey').value.trim());
+    setStatus('#keyStatus', 'Checking…');
+    try { await el('/voices'); setStatus('#keyStatus', 'Key works.', 'ok'); }
+    catch (e) { setStatus('#keyStatus', e.message, 'err'); }
+  };
+
+  function setStatus(sel, msg, kind) {
+    const n = $(sel); n.textContent = msg; n.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  if (!synth) setStatus('#speakStatus', 'Built-in voices unavailable in this browser. Cloned voices still work.', 'err');
+  renderGrid(); renderSamples(); renderCloned(); select('builtin', 'default');
+})();
+</script>
+</body>
+</html>
