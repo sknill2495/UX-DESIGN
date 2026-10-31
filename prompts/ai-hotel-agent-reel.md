@@ -143,7 +143,7 @@ Top row - three WIDE angles of the same room:
  2. Three-quarter angle from the front-left, showing the desk, an empty upholstered desk chair and the window blind on the right.
  3. From behind the desk chair looking toward the camera position: a tripod with a small softbox, dark room beyond.
 Bottom row - three INSERTS:
- 4. Desk surface: an open silver laptop (no logo, screen facing away from camera), a matte-black phone in a tan case, a ceramic coffee mug.
+ 4. Desk surface: an open silver laptop (no logo, screen facing away from camera), a slate-grey phone with no case, a ceramic coffee mug.
  5. Wall shelf detail: warm LED glow, books with blank spines, a small plant.
  6. Window blind with a cool city glow through the slats.
 Fixed geography: desk across the foreground; presenter's chair behind the desk at frame centre; shelf on the back wall above the chair; lamp on screen-LEFT of the desk; window on screen-RIGHT.
