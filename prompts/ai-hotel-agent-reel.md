@@ -1,15 +1,17 @@
 # AI Agent Hotel Reel: production prompt package
 
-60 s, Hindi voice-over laid in post, 9:16 vertical, photoreal, 9 shots.
+60 s, 9:16 vertical, photoreal, 9 shots. On-camera AI Generalist presenter opens and closes the reel; the Hindi voice-over continues over the middle story.
 
 ---
 
 ## 1. Story read
 
+- **Frame:** the reel is a creator explainer. The **AI Generalist** speaks to camera for the hook (0:00-0:06) and the verdict (0:50-1:00). The traveller story in between is his illustration and plays under his voice-over.
 - **Spine:** booking travel goes from effort to almost no effort, because one AI agent carries the whole journey.
-- **Turn (0:35):** "Interesting part AI chatbot nahi hai… connected experience." Before this line the visuals show *searching*. After it they show *flow*: no queues, no desks, no friction.
-- **Runtime:** 60 s in 9 shots, which is inside the 8-shots-per-minute guide with one extra shot for the six-item list ("Search. Booking. Check-in…").
+- **Turn (≈0:33):** "Interesting part AI chatbot nahi hai… connected experience." Before this line the visuals show *asking*. After it they show *flow*: no queues, no desks, no friction.
+- **Runtime:** 60 s in 9 shots: 2 presenter shots + 7 story shots. Each story clip is generated slightly long and trimmed in the edit (see the shot list's EDIT IN/OUT).
 - **Visual rule:** the AI is never shown as a robot or hologram. It appears only as a phone that glows, buzzes and unlocks doors. The less the traveller does on screen, the stronger the message.
+- **Voice continuity:** the presenter's on-camera voice and the middle voice-over must be the same recorded voice. Record the whole script once and lip-sync the presenter shots to it.
 
 ---
 
@@ -19,13 +21,14 @@
 |---|---|---|---|---|---|---|
 | CHAR-A | MEERA (traveller) | 29 | Shoulder-length wavy black hair with centre parting; small gold hoop earrings; warm wheatish-brown skin | Rust-orange short cotton kurti, white straight-leg trousers, white sneakers, olive-green crossbody bag | Matte-black phone in a plain tan case; TEAL hard-shell carry-on suitcase | Screen-left of frame centre |
 | CHAR-B | RAHUL (hotel associate) | 32 | Short neat black hair side-parted; trimmed short beard; calm half-smile | Charcoal-grey suit, white shirt, no tie, blank brass name bar (no text) | None | Screen-right |
+| CHAR-C | ARJUN, the AI GENERALIST (presenter) | 34 | Short textured black hair swept back; short groomed stubble beard; thin silver ring on the right index finger | Navy-blue cotton overshirt, open, over a plain black crew-neck t-shirt; dark grey trousers | Silver laptop (no logo); slate-grey phone, no case | Frame centre, facing camera |
+| LOC-5 | Creator studio (presenter set) | — | Dark, moody home studio, warm practicals, evening | — | Desk, laptop, phone | — |
 | LOC-1 | Meera's apartment | — | Bengaluru flat, blue-hour evening + warm lamp | — | Laptop, chai mug | — |
 | LOC-2 | Hotel exterior + lobby (DUSK) | — | Premium modern Indian hotel, no signage | — | — | — |
-| LOC-2M | Same hotel (MORNING) | — | Same set, morning sun | — | — | — |
 | LOC-3 | Hotel room (NIGHT) | — | King room, city lights in the window | — | — | — |
 | LOC-4 | Street-food lane (MORNING) | — | Old-city lane, chai stall | — | — | — |
 
-Meera wears the same outfit in every shot on purpose: it keeps her face and identity stable across the 9 generations. A costume change needs a second character sheet made from the first.
+Meera and the presenter each wear one outfit in every shot on purpose: it keeps faces and identities stable across the 9 generations. A costume change needs a second character sheet made from the first.
 
 No brand appears anywhere in the visuals. "Hilton" exists only in the voice-over. All signage, phone UI and badges are blank or abstract. Add real UI and on-screen text in the edit.
 
@@ -69,6 +72,26 @@ Photographic: shot on full-frame digital, 85mm look, f/5.6 for full-body, f/2.8 
 No text, no labels, no logos, no other people.
 ```
 
+### CHAR-C: ARJUN, the AI GENERALIST (presenter)
+
+If the AI Generalist is you, skip this prompt. Shoot or select three real photos of yourself in the same layout (full-body front, full-body back, head-and-shoulders portrait, plain backdrop, one outfit) and use that sheet as CHAR-C. Replace ARJUN's identity line in P1 and P2 with your own description.
+
+```
+Character reference sheet, 16:9, three panels side by side on a seamless warm-grey studio backdrop.
+Panel 1: full-body FRONT view, standing relaxed and confident, hands loose at sides, feet visible, friendly closed-mouth smile, looking into lens.
+Panel 2: full-body BACK view, same pose, same scale, showing haircut and overshirt from behind.
+Panel 3: tight head-and-shoulders portrait, front, eyes to lens, skin texture visible.
+Subject: 34-year-old Indian man, lean build, about 5'9", a smart, approachable tech-explainer presence.
+Face: defined cheekbones, dark brown eyes, short groomed stubble beard, medium-brown skin.
+Hair: short textured black hair swept back, neat sides.
+Accessories: thin plain silver ring on the right index finger (visible in panel 1).
+Wardrobe: navy-blue cotton overshirt worn open, sleeves rolled to the forearm, over a plain black crew-neck t-shirt with no print; dark grey tapered trousers; white minimal sneakers.
+Identical face, hair, wardrobe and scale across all three panels.
+Lighting: soft large key from camera-left, gentle fill, subtle rim, slight vignette, warm neutral grade.
+Photographic: shot on full-frame digital, 85mm look, f/5.6 for full-body, f/2.8 for close-up, true-to-life skin texture, natural pores, no retouching, no beauty filter.
+No text, no labels, no logos, no props, no other people.
+```
+
 ---
 
 ## 4. Location sheet prompts
@@ -109,16 +132,22 @@ Fixed geography: entrance glass doors at the front; front desk along the RIGHT w
 Same light direction, colour temperature and set dressing in all six panels. Photoreal, full-frame, 24-35mm for wides, 50mm for inserts, natural colour, no people, no text, no logos.
 ```
 
-### LOC-2M: Same hotel, morning
-
-Generate this with the LOC-2 sheet attached as the reference, so the architecture matches.
+### LOC-5: Creator studio (presenter set, evening)
 
 ```
-Same location as the reference contact sheet - identical architecture, furniture, materials and layout. Change ONLY the time of day and light.
-Location reference contact sheet, 16:9, six photographs in a 3+3 grid, same six camera angles as the reference.
-Time and light: clear morning, 9 am, soft warm sunlight entering through the glass entrance from screen-LEFT, long soft shadows across the stone floor, bright airy exterior, pale blue sky.
-Fixed geography unchanged: entrance glass doors at the front; front desk along the RIGHT wall; elevator bank at the far back centre; lounge seating on the LEFT.
-Photoreal, natural colour, no people, no text, no logos.
+Location reference contact sheet, 16:9, six photographs in a 3+3 grid with thin white gutters.
+Location: a dark, moody home studio of a tech explainer creator in an Indian city apartment, tidy and intentional, wood and charcoal tones.
+Time and light: evening; the room is mostly dark; a warm 2700K practical desk lamp on screen-LEFT, a soft warm LED strip glowing behind a wall shelf, a faint cool city glow through a window blind on screen-RIGHT, deep shadows with readable detail.
+Top row - three WIDE angles of the same room:
+ 1. Straight-on from the camera position: a walnut desk across the frame in the foreground, a charcoal-grey wall behind with a floating wall shelf holding a few books, a small plant and a vintage film camera.
+ 2. Three-quarter angle from the front-left, showing the desk, an empty upholstered desk chair and the window blind on the right.
+ 3. From behind the desk chair looking toward the camera position: a tripod with a small softbox, dark room beyond.
+Bottom row - three INSERTS:
+ 4. Desk surface: an open silver laptop (no logo, screen facing away from camera), a matte-black phone in a tan case, a ceramic coffee mug.
+ 5. Wall shelf detail: warm LED glow, books with blank spines, a small plant.
+ 6. Window blind with a cool city glow through the slats.
+Fixed geography: desk across the foreground; presenter's chair behind the desk at frame centre; shelf on the back wall above the chair; lamp on screen-LEFT of the desk; window on screen-RIGHT.
+Same light direction, colour temperature and set dressing in all six panels. Photoreal, full-frame, 24-35mm for wides, 50mm for inserts, natural colour, no people, no text, no logos, no neon signs.
 ```
 
 ### LOC-3: Hotel room (night)
@@ -161,19 +190,21 @@ Same light direction, colour temperature and set dressing in all six panels. Pho
 
 ## 5. Shot list
 
-| # | Time | Dur | VO covered | Visual beat | Camera | References |
-|---|---|---|---|---|---|---|
-| S1 | 0:00-0:05 | 5 s | "Kal hotel book karne ke liye website kholne ki zarurat bhi nahi…" | Meera, tired, faces a laptop full of tabs, then shuts the lid | Slow push-in, then hold | MEERA, LOC-1 |
-| S2 | 0:05-0:13 | 8 s | "Socho… Aap bas apne AI agent se kaho— 'Mujhe 3 din ke liye hotel…'" | She walks to the balcony and speaks into her phone, held close; face in 3/4 back view, lips not visible | Handheld follow, then settle | MEERA, LOC-1 |
-| S3 | 0:13-0:21 | 8 s | "AI sirf hotel search nahi karega… compare… simplify… help" | Phone on the cane chair glows and pulses on its own while she sips chai and relaxes | Locked; rack focus from phone to her | MEERA, LOC-1 |
-| S4 | 0:21-0:28 | 7 s | "Hilton isi direction mein… technology stack…" | Hotel exterior at dusk | Slow rising crane/drone push-in | LOC-2 |
-| S5 | 0:28-0:34 | 6 s | "…AI Planner launch kiya… conversational language…" | Night cab back seat; phone glow on her face, city lights streaking | Locked side profile, car-mounted | MEERA |
-| S6 | 0:34-0:42 | 8 s | "Interesting part AI chatbot nahi… connected experience." | She walks through the lobby past the front desk without stopping; Rahul nods; phone buzzes; she heads straight to the elevators | Steadicam lead, backing up ahead of her | MEERA, RAHUL, LOC-2 |
-| S7 | 0:42-0:50 | 8 s | "Search. Booking. Check-in. Room requests." | Her phone unlocks the room door; she enters and drops onto the bed with relief | From inside the room, facing the door | MEERA, LOC-3 |
-| S8 | 0:50-0:55 | 5 s | "Local recommendations. Checkout. Sab ek journey…" | Morning lane; she glances at her phone and receives chai at the stall | Handheld, medium | MEERA, LOC-4 |
-| S9 | 0:55-1:00 | 5 s | "…best experience woh hoga… jahan customer ko kam kaam karna padega." | Morning checkout: teal suitcase, she walks out of the hotel without stopping, Rahul waves, she pockets her phone, smiling | Wide, locked, she walks toward the lens | MEERA, RAHUL, LOC-2M |
+GEN = length to generate. EDIT IN/OUT = where it sits in the 60 s timeline after trimming.
 
-Edit note: cut S8 → S9 on the VO pause after "Sab ek journey ka part ban sakte hain." Let "AI Generalist ke nazariye se—" start over S8's tail so S9 carries the final line.
+| # | GEN | EDIT IN/OUT | Script covered | Visual beat | Camera | References |
+|---|---|---|---|---|---|---|
+| P1 | 6 s | 0:00-0:06 | ON CAMERA: "Kal hotel book karne ke liye website kholne ki zarurat bhi nahi pad sakti. Socho…" | Presenter at his desk, laptop open; on "zarurat bhi nahi" he shuts the lid, then leans toward the lens for "Socho…" | Slow push-in, eye-level, locked | ARJUN, LOC-5 |
+| S2 | 8 s | 0:06-0:13 | VO: "Aap bas apne AI agent se kaho— 'Mujhe 3 din ke liye hotel…'" | Meera walks to the balcony and speaks into her phone; face in 3/4 back view, lips not visible | Handheld follow, then settle | MEERA, LOC-1 |
+| S3 | 8 s | 0:13-0:19 | VO: "AI sirf hotel search nahi karega… compare… simplify… help" | Her phone glows and pulses on the chair arm while she sips chai | Locked, rack focus | MEERA, LOC-1 |
+| S4 | 7 s | 0:19-0:25 | VO: "Hilton isi direction mein… technology stack…" | Hotel exterior at dusk | Rising push-in | LOC-2 |
+| S5 | 6 s | 0:25-0:31 | VO: "…AI Planner launch kiya… conversational language…" | Night cab, phone glow on her face | Car-mounted profile | MEERA |
+| S6 | 8 s | 0:31-0:38 | VO: "Interesting part AI chatbot nahi… connected experience." | She walks through the lobby past the desk without stopping; Rahul nods; phone key buzzes | Steadicam lead | MEERA, RAHUL, LOC-2 |
+| S7 | 8 s | 0:38-0:45 | VO: "Search. Booking. Check-in. Room requests." | Phone unlocks the room; lights come on; she falls onto the bed | Inside room facing door | MEERA, LOC-3 |
+| S8 | 5 s | 0:45-0:50 | VO: "Local recommendations. Checkout. Sab ek journey ka part…" | Morning lane, chai handed to her | Handheld medium | MEERA, LOC-4 |
+| P2 | 10 s | 0:50-1:00 | ON CAMERA: "AI Generalist ke nazariye se— Future mein best experience woh nahi hoga jahan customer ko zyada options milenge. Best experience woh hoga… jahan customer ko kam kaam karna padega." | Presenter back at his desk, direct to camera; on "kam kaam" he sets the phone face-down on the desk and leans back with a small smile | Very slow push-in, locked | ARJUN, LOC-5 |
+
+Removed from v1: S1 (tab fatigue, which P1's laptop-close replaces) and S9 (checkout, now carried by the word "Checkout" as on-screen text over S8). LOC-2M is no longer needed.
 
 ---
 
@@ -181,57 +212,58 @@ Edit note: cut S8 → S9 on the VO pause after "Sab ek journey ka part ban sakte
 
 Upload the references in the order listed in each prompt's ACTIVE REFERENCES. Image numbers restart in every generation.
 
-### S1 (5 s): Tab fatigue
+### P1 (6 s): AI Generalist hook (on camera)
 
 ```
 SCENE CONTEXT
-One continuous shot. A tired young woman sits in her living room at blue hour, staring at a laptop crowded with browser tabs. She exhales, gives up, and closes the laptop lid. The feeling: booking travel online is exhausting.
+One continuous shot. A tech-explainer creator, the AI GENERALIST, sits at his desk in a dark, moody home studio and speaks directly to camera in Hindi. He closes his laptop mid-sentence, as if to say "you won't need this", then leans toward the lens to pull the viewer in. Confident, warm, a little provocative.
 
 ACTIVE REFERENCES
-<<<image_1>>> MEERA: 29yo Indian woman, shoulder-length wavy black hair with centre parting, small gold hoop earrings, rust-orange short cotton kurti, white straight trousers, white sneakers. 100% matches the reference.
-<<<image_2>>> LOCATION: compact Bengaluru apartment living room at blue hour, beige linen sofa facing camera, low wooden coffee table, glass balcony door screen-right, warm floor lamp screen-left. 100% matches the reference.
-DIFFERENTIATORS: MEERA = rust-orange kurti + gold hoops + wavy black hair. Visible in every frame.
+<<<image_1>>> ARJUN, the AI GENERALIST: 34yo Indian man, short textured black hair swept back, short groomed stubble beard, thin silver ring on the right index finger, navy-blue open overshirt with sleeves rolled, over a plain black crew-neck t-shirt. 100% matches the reference.
+<<<image_2>>> LOCATION: dark, moody creator studio in the evening, walnut desk across the foreground, charcoal wall with a floating shelf and warm LED glow behind him, warm desk lamp on screen-LEFT, window blind with cool city glow on screen-RIGHT. 100% matches the reference.
+DIFFERENTIATORS: ARJUN = navy overshirt + black tee + stubble + silver ring. Visible in every frame.
 
 LOCATION MAP
-Sofa midground facing camera. Coffee table foreground holds an open silver laptop (no logo) and a chai mug. Balcony glass door screen-RIGHT behind the sofa, blue evening light. Floor lamp screen-LEFT, warm.
+Walnut desk across the lower frame. ARJUN seated behind it at frame centre. Open silver laptop on the desk screen-LEFT of him, its screen facing away from camera. Slate-grey phone face-down near his right hand. Shelf with warm glow behind his head. Lamp screen-LEFT, window glow screen-RIGHT.
 
 CAMERA START POSITION
-Camera on the far side of the coffee table at seated eye level, facing MEERA head-on; the laptop's back is in the lower foreground, slightly out of focus.
+Camera on a tripod on the far side of the desk, at his seated eye level, lens centred on his face, 1.5 metres away.
 
 FIRST FRAME AND SPATIAL BLOCKING
-0:00 frame: MEERA already seated at the sofa centre, leaning toward the laptop, chin resting on one hand, the screen's cool glow on her face, eyes tired. No empty frame.
+0:00 frame: ARJUN already seated, looking straight into the lens, mouth just opening to speak, right hand resting on the open laptop lid. No empty frame.
 
 FORMAT MODE
-Single continuous take, 5 seconds, real-time, 9:16 vertical, no cuts.
+Single continuous take, 6 seconds, real-time, 9:16 vertical, no cuts. Talking-head, direct address.
 
 OPTICS
-35mm on full frame, vertical framing from mid-thigh up, f/2.8, the background softly defocused, the balcony light blooming gently.
+50mm on full frame, medium close-up from mid-chest up, f/2.0, the shelf softly defocused into warm bokeh.
 
 CAMERA
-Very slow push-in from medium to medium-close over 0:00-0:03, then locked.
+Very slow, steady push-in from medium close-up to close-up over the full 6 seconds. No handheld shake.
 
 ACTION TIMING
-0:00 MEERA scrolls on the trackpad with two fingers, eyes flicking left-right across the screen, brows slightly knitted.
-0:02 She stops, lets out a long exhale, shoulders drop.
-0:03.5 She closes the laptop lid with one hand, firmly but not angrily; the screen glow vanishes from her face, leaving warm lamp light.
-0:04.5 She leans back into the sofa, eyes closed for a moment.
+0:00 ARJUN speaks to the lens, calm and confident, eyebrows slightly raised as if sharing a secret.
+0:02.5 On "zarurat bhi nahi" he presses the laptop lid down with his right hand without looking at it, eyes staying on the lens.
+0:04 He leans forward slightly toward camera, forearms on the desk, and on "Socho…" pauses with a small knowing half-smile, eyes locked on the lens.
+0:05.5 Hold on the pause.
 
 PERFORMANCE (acting)
-MEERA:
-  - 0:00-0:03 FATIGUED: eyes heavy, small squint at the screen. NOT angry, NOT crying.
-  - 0:03-0:05 RELEASE: only AFTER the lid closes does her face soften into relief. The change happens HERE.
+ARJUN: direct, intelligent, friendly; a teacher sharing an insight, NOT a salesman, NOT shouting. Natural Hindi speech rhythm with clear, accurate mouth shapes. Blinks naturally. Small, controlled hand movement only.
 
 PHYSICS
-The laptop lid has real hinge resistance and closes with a soft thud. Her body weight sinks into the sofa cushion as she leans back. Hair moves slightly with the lean.
+The laptop lid has real hinge resistance and closes with a soft thud. A natural forward weight shift onto his forearms. The overshirt fabric creases as he leans.
 
 LIGHTING
-Cool blue-hour daylight from the balcony door screen-right as rim light; warm 2700K floor lamp key from screen-left; a cool screen glow on her face that disappears when the lid closes. Consistent for the whole take.
+Warm 2700K desk-lamp key from screen-LEFT, soft warm LED glow behind as rim/hair light, a faint cool fill from the window on screen-RIGHT; a moody low-key look with his face clearly lit. Consistent for the whole take.
 
 AUDIO
-Quiet room tone, distant city traffic through the balcony door, the soft click of the laptop lid. No dialogue, no lip movement. No music (voice-over added in post).
+ARJUN speaks in Hindi, conversational, to camera:
+0:00-0:04 "Kal hotel book karne ke liye website kholne ki zarurat bhi nahi pad sakti."
+0:04.5 "Socho…"
+Soft room tone, laptop lid thud at 0:02.5. No music.
 
 POSITIVE CONSTRAINTS
-One continuous 5 s take. Exactly one person: MEERA, rust-orange kurti, gold hoops, wavy black hair. She closes the laptop; she does not speak. Laptop screen not visible to camera. Blue-hour plus warm-lamp light throughout. No other people, no text on screen, no logos, no morphing face, no cuts.
+One continuous 6 s take. Exactly one person: ARJUN in the navy overshirt over a black tee, seated at frame centre, speaking straight to the lens. Laptop screen never visible to camera. Accurate lip movement for the Hindi lines. Moody warm studio light throughout. No other people, no text on screen, no logos, no neon, no morphing face, no cuts.
 ```
 
 ### S2 (8 s): Speaking to the agent
@@ -596,58 +628,61 @@ POSITIVE CONSTRAINTS
 One continuous 5 s take. Exactly one full person: MEERA in the rust-orange kurti and gold hoops; the vendor appears only as a hand and forearm. No readable signage, no text, no logos, no morphing face, no cuts.
 ```
 
-### S9 (5 s): Effortless checkout
+### P2 (10 s): AI Generalist verdict (on camera)
 
 ```
 SCENE CONTEXT
-One continuous shot, morning. MEERA walks out of the hotel lobby with her teal suitcase toward the sunlit entrance, past the front desk without stopping. RAHUL waves goodbye from behind the desk. She slips her phone into her bag and walks out smiling. The final image of "less effort".
+One continuous shot. Back in the dark, moody studio, the AI GENERALIST delivers the closing insight directly to camera in Hindi. He holds his phone loosely, and on the final words he sets it face-down on the desk and leans back, as if to say "that's the point: you do less". Calm, certain, memorable.
 
 ACTIVE REFERENCES
-<<<image_1>>> MEERA: 29yo Indian woman, shoulder-length wavy black hair with centre parting, small gold hoop earrings, rust-orange short cotton kurti, white straight trousers, white sneakers, olive-green crossbody bag. Pulls a TEAL hard-shell carry-on suitcase with her LEFT hand. 100% matches the reference.
-<<<image_2>>> RAHUL: 32yo Indian man, short neat side-parted black hair, trimmed short beard, charcoal-grey suit, white open-collar shirt, blank brass name bar. 100% matches the reference.
-<<<image_3>>> LOCATION: the same premium hotel lobby in MORNING light, beige stone floor, teak front desk along the RIGHT wall, glass entrance at the front with morning sun pouring in from screen-LEFT. 100% matches the reference.
-DIFFERENTIATORS: MEERA = rust-orange kurti + teal suitcase + gold hoops, centre-left. RAHUL = charcoal suit + beard, behind the desk on screen-RIGHT.
+<<<image_1>>> ARJUN, the AI GENERALIST: 34yo Indian man, short textured black hair swept back, short groomed stubble beard, thin silver ring on the right index finger, navy-blue open overshirt with sleeves rolled, over a plain black crew-neck t-shirt. 100% matches the reference.
+<<<image_2>>> LOCATION: dark, moody creator studio in the evening, walnut desk across the foreground, charcoal wall with a floating shelf and warm LED glow behind him, warm desk lamp on screen-LEFT, window blind with cool city glow on screen-RIGHT. 100% matches the reference.
+DIFFERENTIATORS: ARJUN = navy overshirt + black tee + stubble + silver ring. Visible in every frame.
 
 LOCATION MAP
-Camera outside, just beyond the glass entrance, looking into the lobby. Front desk along the RIGHT side with RAHUL behind it. MEERA walks from the lobby centre toward camera and out through the open glass doors.
+Walnut desk across the lower frame. ARJUN seated behind it at frame centre. Closed silver laptop on the desk screen-LEFT. He holds the slate-grey phone (no case) in his right hand. Shelf with warm glow behind his head. Lamp screen-LEFT, window glow screen-RIGHT.
 
 CAMERA START POSITION
-Camera on the porte-cochère, 2 metres outside the open glass doors, at chest height, facing into the lobby.
+Camera on a tripod on the far side of the desk at his seated eye level, lens centred on his face, 1.5 metres away. Same position as the opening shot.
 
 FIRST FRAME AND SPATIAL BLOCKING
-0:00 frame: MEERA already walking toward camera from the lobby centre-left, suitcase rolling, phone in her right hand; RAHUL behind the desk on screen-RIGHT, looking toward her.
+0:00 frame: ARJUN already seated, forearms on the desk, phone held loosely in his right hand at chest height with its screen facing him, eyes on the lens, about to speak.
 
 FORMAT MODE
-Single continuous take, 5 seconds, real-time, 9:16 vertical, no cuts.
+Single continuous take, 10 seconds, real-time, 9:16 vertical, no cuts. Talking-head, direct address.
 
 OPTICS
-35mm on full frame, f/2.8, the sun flaring softly through the glass.
+50mm on full frame, medium close-up from mid-chest up, f/2.0, warm bokeh behind.
 
 CAMERA
-Locked. She walks into a medium-close final framing.
+Very slow, steady push-in over 0:00-0:08, ending in a close-up; locked for the final 2 seconds.
 
 ACTION TIMING
-0:00 MEERA walks toward camera; RAHUL raises a hand in a warm goodbye wave from behind the desk.
-0:01.5 She smiles and waves back briefly with her phone hand, still walking, never slowing at the desk.
-0:03 She slides the phone into her olive crossbody bag.
-0:04 She steps through the glass doors into the sunlight, face lit warm, an easy, satisfied smile. FINAL FRAME: MEERA in medium-close, sunlit, smiling, the suitcase handle in her left hand.
+0:00 ARJUN speaks to the lens, measured and thoughtful.
+0:03 On "zyada options" he gives the phone a small, slightly dismissive tilt, as if weighing it.
+0:05.5 A deliberate pause on "Best experience woh hoga…": he holds eye contact, a beat of silence.
+0:07 On "kam kaam karna padega" he sets the phone face-down on the desk with a soft tap, without looking at it.
+0:08.5 He leans back slightly in his chair, a small confident smile, still looking into the lens. Hold to the end.
 
 PERFORMANCE (acting)
-MEERA: light, unburdened, quietly satisfied. NOT laughing, NOT posing.
-RAHUL: warm, friendly wave; he stays behind the desk.
-Reactions staggered, not synced.
+ARJUN: calm authority, warm, a quiet conviction; the pause before the last line is the emotional peak. NOT preachy, NOT over-gesturing. Natural Hindi speech rhythm with clear, accurate mouth shapes. Natural blinks.
 
 PHYSICS
-Suitcase wheels clicking over the stone and the threshold; a natural walking rhythm; the bag flap moving as the phone goes in.
+Real phone weight and a soft tap when it is set down. The chair gives slightly as he leans back. The overshirt fabric moves naturally.
 
 LIGHTING
-Clear morning sun entering from screen-LEFT through the glass, warm and bright; soft fill bouncing off the stone floor; a gentle lens flare as she steps out. Consistent for the whole take.
+Warm 2700K desk-lamp key from screen-LEFT, warm LED rim behind, a faint cool window fill on screen-RIGHT; identical to the opening shot. Consistent for the whole take.
 
 AUDIO
-Morning lobby ambience, suitcase wheels, birdsong outside, the soft glide of doors. No dialogue audible. No music.
+ARJUN speaks in Hindi, conversational, to camera:
+0:00-0:02 "AI Generalist ke nazariye se—"
+0:02-0:05 "Future mein best experience woh nahi hoga jahan customer ko zyada options milenge."
+0:05.5-0:07 "Best experience woh hoga…"
+0:07-0:08.5 "jahan customer ko kam kaam karna padega."
+Soft room tone, the phone tap at 0:07. No music.
 
 POSITIVE CONSTRAINTS
-One continuous 5 s take. Exactly two people: MEERA (rust-orange kurti, teal suitcase in her LEFT hand) and RAHUL (charcoal suit, behind the desk on screen-RIGHT). She never stops at the desk. Morning light throughout. No other guests, no readable signage, no logos, no morphing faces, no cuts.
+One continuous 10 s take. Exactly one person: ARJUN in the navy overshirt over a black tee, seated at frame centre, speaking straight to the lens. Same studio, light and camera position as the opening shot. Phone screen never visible to camera. Phone ends face-down on the desk. Accurate lip movement for the Hindi lines. No other people, no text on screen, no logos, no neon, no morphing face, no cuts.
 ```
 
 ---
@@ -656,16 +691,16 @@ One continuous 5 s take. Exactly two people: MEERA (rust-orange kurti, teal suit
 
 Use these for image-to-video on the shots where the opening matters most. Attach the same references as the video prompt.
 
-### S1 frame 0
+### P1 frame 0 (also use it as frame 0 for P2, with the laptop closed and the phone in his hand)
 ```
-MEERA (reference) seated at the centre of a beige linen sofa in a Bengaluru apartment at blue hour, leaning toward an open silver laptop (no logo) on a low wooden coffee table, chin resting on one hand, tired eyes, cool screen glow on her face.
-Setting: glass balcony door behind her on screen-right with blue evening light, warm floor lamp on screen-left, chai mug and money plant on the table.
-Composition: 9:16 vertical, medium shot from mid-thigh up, laptop back soft in the lower foreground, camera at seated eye level.
-Camera: full-frame digital, 35mm, f/2.8, focus on her eyes.
-Light: warm 2700K lamp key from screen-left, cool blue rim from the balcony, cool screen glow.
-Texture: natural skin with pores, flyaway hairs, linen wrinkles, slight dust in the lamp light.
-Grade: natural mixed warm/cool, gentle contrast, subtle grain.
-Exclude: text, logos, readable screen, extra people, plastic skin, beauty filter.
+ARJUN (reference) seated at a walnut desk in a dark, moody home studio at night, looking straight into the lens with a confident, friendly expression, mouth just parting to speak, right hand resting on the lid of an open silver laptop whose screen faces away from camera; a slate-grey phone (no case) face-down near his hand.
+Setting: charcoal wall behind him with a floating shelf, a warm LED glow, a few books with blank spines, a small plant; a warm desk lamp on screen-left; a window blind with a faint cool city glow on screen-right.
+Composition: 9:16 vertical, medium close-up from mid-chest up, centred, camera at seated eye level, 1.5 metres away.
+Camera: full-frame digital, 50mm, f/2.0, focus on the eyes, warm bokeh behind.
+Light: warm 2700K key from screen-left, warm rim from the shelf glow, faint cool fill from screen-right, low-key but face clearly lit.
+Texture: natural skin with pores, stubble detail, cotton overshirt creases, a fine dust glint in the lamp light.
+Grade: moody warm, gentle contrast, subtle grain.
+Exclude: text, logos, readable screen, neon signs, extra people, plastic skin, beauty filter.
 ```
 
 ### S6 frame 0
@@ -691,29 +726,23 @@ Grade: cool, low-key, subtle grain.
 Exclude: people, text, room numbers, logos.
 ```
 
-### S9 frame 0
-```
-MEERA (reference) walking toward camera out of a premium hotel lobby in morning light, rust-orange kurti, teal suitcase rolling behind her left hand, phone in her right hand, mid-stride, relaxed smile, positioned centre-left.
-RAHUL (reference) behind a teak front desk on screen-right, raising a hand to wave goodbye.
-Setting: polished beige stone floor, glass entrance doors open, warm morning sun pouring in from screen-left, no signage, no logos.
-Composition: 9:16 vertical, camera 2 metres outside the doors at chest height, full-body.
-Camera: full-frame digital, 35mm, f/2.8.
-Light: bright warm sun from screen-left, bounce fill off the floor, soft flare.
-Texture: natural skin, fabric creases, real suitcase scuffs.
-Grade: warm, airy, natural, subtle grain.
-Exclude: text, logos, extra guests, duplicate characters, plastic skin.
-```
 
 ---
 
 ## 8. Audio note
 
-The Hindi voice-over is laid in post over the whole edit. Every video prompt is set to **no dialogue and no lip movement toward camera; ambient sound only**. The one moment of speech (S2) is framed from 3/4 behind so her lips can't be read. Mix the generated ambience at about -18 dB under the VO and add a light music bed in the edit. Add the Hilton name, any brand UI and the six-word list ("Search · Booking · Check-in · Room requests · Local recommendations · Checkout") as text in post. Do not generate any of it.
+- **One voice, recorded once.** Record the whole Hindi script in the presenter's voice (yours, if you are the AI Generalist) before generating anything.
+- **Presenter shots (P1, P2) need lip-sync.** There are two routes:
+  1. **Native speech:** use a video model that generates dialogue from the AUDIO block. [Guessing] Hindi lip accuracy varies by model, so expect retries.
+  2. **Recommended:** generate P1/P2 as written. Then run a lip-sync pass (any video lip-sync / talking-avatar tool) that drives his mouth with your recorded audio for those exact lines. This keeps the voice identical to the middle voice-over.
+- **Story shots (S2-S8):** no dialogue and no lip movement toward camera; ambient sound only. The voice-over sits on top. S2 is framed from 3/4 behind so Meera's lips can't be read.
+- Mix the generated ambience at about -18 dB under the voice. Add a light music bed in the edit. Duck it under the presenter's on-camera lines.
+- Add the Hilton name, any brand UI, an "AI GENERALIST" name strap on P1, and the six-word list ("Search · Booking · Check-in · Room requests · Local recommendations · Checkout") over S7-S8 as text in post. Do not generate any of it.
 
 ---
 
 ## Risk check
 
-1. **S6: Meera stops at the desk, or Rahul walks out to her.** Proximity pulls characters together. Mitigation: generate the S6 start frame first; if it still fails, cut to 6 s and drop the phone-buzz beat.
-2. **S7: the opening shows an empty room for too long, or she touches the lock.** Mitigation: the S7 start frame plus the "without touching the lock" constraint. If the model insists on a key card, accept it and frame the door tighter.
-3. **Phone screens with garbled text or a fake logo** (S3, S6). Mitigation: "abstract glowing cards, no legible text" is in every prompt. If text still appears, blur the screen in post or replace it with a screen insert.
+1. **P1/P2: wrong or rubbery Hindi lip movement.** Mitigation: use the lip-sync route above; keep the camera locked and the presenter's head mostly still, which lip-sync tools handle best.
+2. **Presenter identity drifting between P1 and P2.** Mitigation: same CHAR-C sheet, same frame-0 image, same camera position and light text in both prompts. Generate them back to back.
+3. **S6: Meera stops at the desk, or Rahul walks out to her.** Mitigation: generate the S6 start frame first; if it still fails, cut to 6 s in the edit and drop the phone-buzz beat.
