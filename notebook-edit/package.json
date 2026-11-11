@@ -1,0 +1,18 @@
+{
+  "name": "notebook-edit",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Main out/final.mp4 --codec=h264 --crf=18 --audio-bitrate=192k --pixel-format=yuv420p --browser-executable=/opt/pw-browsers/chromium_headless_shell-1243/chrome-headless-shell-linux64/chrome-headless-shell"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@remotion/cli": "^4.0.542",
+    "@remotion/media-utils": "^4.0.542",
+    "@types/react": "^18.3.31",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.542",
+    "typescript": "^7.0.2"
+  }
+}
