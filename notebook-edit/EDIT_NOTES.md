@@ -21,6 +21,9 @@ These notes list where this edit departs from the original spec (`video-edit-pro
 - Whisper `small` is weak on Hindi. Word onsets come from per-clip forced transcription and were corrected by hand, so expect ±2–4 frames on some Hinglish words. This is most likely in the fast run "kharab nahi hona chahiye" (16.24–16.87 s). I have not verified this by listening.
 - The montage timings at 26.5 s, 27.5 s, 29.0 s, 30.1 s, 31.0 s and 32.2 s are anchored to shot cuts and to time, not to words, because nothing is spoken there.
 
+## Camera push-in
+- Per user feedback, the push-in is capped at about 1.22×, with edges clamped so the whole card stays inside the 1080 px width and the panel. This replaces the reference's 1.5–1.8× edge-cropping push. The active row is emphasised by the chip, tick and highlight instead.
+
 ## Assets
 - The stickers are original SVG faces drawn in code. No stock reaction clips were available offline.
 - The SFX (whoosh, pop, click, tick, thud) were synthesised with ffmpeg. There is no music bed; the source already carries one.

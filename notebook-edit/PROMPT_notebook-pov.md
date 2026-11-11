@@ -107,7 +107,7 @@ Use Inter for everything. Load it from `@fontsource/inter` (npm), because Google
 ## 6. MOTION LIBRARY (frame counts at 30 fps)
 - Card enter: spring scale 0.86→1, opacity 0→1, 9 f. Hard cut on concept change.
 - Carousel for sibling states: 40 px gap so the neighbouring cards peek in; slide over 12 f with `bezier(.22,1,.36,1)`.
-- Camera push-in: 20 f with `bezier(.65,0,.35,1)`, scale 1.35–1.7×, centred on the row being spoken.
+- Camera push-in: 20 f with `bezier(.65,0,.35,1)`, **capped so the whole card stays on screen** (about 1.22× max, 24 px side margins, inside y 10–595), pulled toward the row being spoken.
 - Highlighter wipe: 9 f, behind the text.
 - Tick and ✕: draw over 6 f.
 - Count-up: 24–30 f with `bezier(.16,1,.3,1)`, with a square grid that fills in sync.

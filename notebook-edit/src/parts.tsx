@@ -214,8 +214,14 @@ export const useCamera = (keys: CamKey[], h: number) => {
     prev = {...k};
     if (p < 1) break;
   }
-  // focus point lands where the card centre sits at rest
-  const dx = 421 - cur.s * cur.x;
-  const dy = h / 2 - cur.s * cur.y;
+  // keep the whole card on screen: cap zoom to what fits the 1080 width
+  // (24px margins) and the panel viewport (y 10..595)
+  const sMax = Math.min((1080 - 48) / 842, (595 - 10) / h);
+  const s = Math.min(cur.s, sMax);
+  // focus point lands where the card centre sits at rest, then clamp edges
+  const clampR = (v: number, lo: number, hi: number) => (lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
+  const dx = clampR(421 - s * cur.x, 24 - 119, 1056 - 842 * s - 119);
+  const dy = clampR(h / 2 - s * cur.y, 10 - 110, 595 - h * s - 110);
+  cur = {...cur, s};
   return {transform: `translate(${dx}px, ${dy}px) scale(${cur.s})`, transformOrigin: '0 0', scale: cur.s};
 };
