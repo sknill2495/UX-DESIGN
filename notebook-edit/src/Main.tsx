@@ -245,7 +245,7 @@ const STICKERS = [
   {at: at('important'), x: 820, y: 1000, rot: 5, kind: 'think', label: 'one more?', hold: 44},
   {at: f(27.0), x: 30, y: 1540, rot: -6, kind: 'facepalm', label: 'bro.', hold: 46},
   // Mode C
-  {at: at('toh', 34), x: 820, y: 1300, rot: 6, kind: 'same', label: 'same', hold: 34},
+  {at: at('toh', 34), x: 820, y: 960, rot: 6, kind: 'same', label: 'same', hold: 34},
 ] as const;
 
 /* ---------------- SFX map ---------------- */
