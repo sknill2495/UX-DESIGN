@@ -132,9 +132,6 @@ export const Keyword: React.FC<{fr: number}> = ({fr}) => {
         ‘ek reel’
         <div style={{position: 'absolute', left: 10, right: 10, bottom: -14, height: 6, borderRadius: 3, background: T.white, transformOrigin: '0 50%', transform: `scaleX(${ul})`}} />
       </div>
-      <div style={{fontSize: 46, fontWeight: 800, color: T.white, textShadow: shadowText, marginTop: 34, height: 60, letterSpacing: '-0.01em'}}>
-        <TypeOn fr={fr} start={A.chime} text="…famous last words" cps={20} />
-      </div>
     </div>
   );
 };
